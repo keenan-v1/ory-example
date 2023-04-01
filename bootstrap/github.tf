@@ -2,7 +2,7 @@
 resource "github_actions_secret" "terraform_cloud_token" {
   repository      = split("/", var.repository)[1]
   secret_name     = "terraform_cloud_token"
-  plaintext_value = tfe_organization_token.token.token
+  plaintext_value = var.terraform_token
 }
 
 # Create the Terraform Cloud organization variable in GitHub

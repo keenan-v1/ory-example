@@ -34,6 +34,11 @@ variable "terraform_version" {
   default     = "1.4.1"
 }
 
+variable "terraform_token" {
+  type        = string
+  description = "The Terraform Cloud token to use"
+}
+
 variable "oidc_provider_arn" {
   type        = string
   description = "The ARN of the OIDC provider to use"

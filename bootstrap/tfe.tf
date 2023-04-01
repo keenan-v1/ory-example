@@ -3,10 +3,6 @@ data "tfe_organization" "organization" {
   name = var.organization
 }
 
-resource "tfe_organization_token" "token" {
-  organization = data.tfe_organization.organization.name
-}
-
 # Create global variable set for the Terraform Cloud organization
 resource "tfe_variable_set" "defaults" {
   name         = "default-tfvars"

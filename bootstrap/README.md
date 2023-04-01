@@ -7,8 +7,9 @@ It is designed to be _run locally_, with state being saved securely in Terraform
 1. [Login to Terraform Cloud](https://app.terraform.io); create an account if you don't have one.
 2. Create your organization if you don't have one.
 3. Create a `bootstrap` workspace.
-4. Set the execution to `local`.
-5. [Configure your local AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+4. Create a User API Token. **Important: Only User tokens can perform plans and applies!**
+5. Set the execution to `local`.
+6. [Configure your local AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
 Why local? The bootstrapping process creates a special IAM user for Terraform runs, since Terraform has neglected to provide a means to use IAM Roles to authenticate.
 In this way, your privileged credentials are only ever stored locally.
@@ -20,13 +21,15 @@ To bootstrap, create a `terraform.tfvars` file with the following, replacing pla
 never setup GitHub OIDC in your AWS environment, otherwise specify the ARN for the provider.
 
 ```hcl
-github_token=<your GitHub token>
-organization=<your Terraform Cloud organization>
-project_name=<your project name>
-region=<your AWS region>
-repository=<your GitHub repository>
-environment=<target environment>
-oidc_provider_arn=<GitHub OIDC Provider ARN>
+github_token="YOUR-SECRET-TOKEN"
+terraform_token="YOUR-SECRET-TOKEN"
+organization="your-tf-org"
+project_name="your-project"
+region="aws-region"
+repository="owner/repository-name"
+environment="your-env"
+# Optional, only required if you already have an OIDC provider for GitHub!
+oidc_provider_arn="arn::of::provider"
 ```
 
 Next, initialize Terraform and your backend:
