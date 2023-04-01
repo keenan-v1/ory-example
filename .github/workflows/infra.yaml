@@ -2,6 +2,11 @@ name: Infrastructure
 
 on:
   workflow_dispatch:
+    inputs:
+      force-apply:
+        description: "Force apply"
+        required: false
+        default: "false"
   push:
     branches:
       - main
@@ -25,5 +30,6 @@ jobs:
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
+      force-apply: ${{ github.event.inputs.force-apply }}
     secrets:
       terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}

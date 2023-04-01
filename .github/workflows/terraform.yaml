@@ -18,6 +18,11 @@ on:
         type: string
         description: "Terraform Cloud Organization"
         required: true
+      force-apply:
+        type: boolean
+        description: "Force apply"
+        required: false
+        default: false
     secrets:
       terraform-cloud-token:
         description: "Terraform Cloud Token"
@@ -74,4 +79,4 @@ jobs:
         id: apply
         working-directory: ${{ inputs.working-directory }}
         run: terraform apply -auto-approve -no-color
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.force-apply == 'true'
