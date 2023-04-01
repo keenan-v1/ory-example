@@ -1,0 +1,298 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"ec2:CreateTags",
+				"ec2:DescribeEgressOnlyInternetGateways",
+				"ec2:DescribeInternetGateways",
+				"ec2:DescribeNetworkAcls",
+				"ec2:DescribeNetworkInterfaces",
+				"ec2:DescribeRouteTables",
+				"ec2:DescribeSecurityGroupRules",
+				"ec2:DescribeSecurityGroups",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeVpcClassicLink",
+				"ec2:DescribeVpcClassicLinkDnsSupport",
+				"ec2:DescribeVpcs",
+				"ec2:DisassociateRouteTable",
+                "ssm:PutParameter",
+                "ssm:DescribeParameters",
+				"rds:ListTagsForResource",
+				"sts:GetCallerIdentity"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "ec2:DeleteEgressOnlyInternetGateway",
+			"Resource": "arn:aws:ec2:${region}:${account}:egress-only-internet-gateway/*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"ec2:DeleteInternetGateway",
+				"ec2:DetachInternetGateway"
+			],
+			"Resource": "arn:aws:ec2:${region}:${account}:internet-gateway/*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"ec2:DeleteRoute",
+				"ec2:DeleteRouteTable"
+			],
+			"Resource": "arn:aws:ec2:${region}:${account}:route-table/*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"ec2:AuthorizeSecurityGroupEgress",
+				"ec2:CreateSecurityGroup",
+				"ec2:DeleteSecurityGroup",
+				"ec2:RevokeSecurityGroupEgress"
+			],
+			"Resource": "arn:aws:ec2:${region}:${account}:security-group/*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": "ec2:DeleteSubnet",
+			"Resource": "arn:aws:ec2:${region}:${account}:subnet/*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"ec2:DeleteVpc",
+				"ec2:DescribeVpcAttribute",
+				"ec2:DetachInternetGateway"
+			],
+			"Resource": "arn:aws:ec2:${region}:${account}:vpc/*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"kms:CreateGrant",
+				"kms:Decrypt",
+				"kms:DescribeKey",
+				"kms:GenerateDataKey"
+			],
+			"Resource": "arn:aws:kms:${region}:${account}:key/*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"rds:DeleteDBInstance",
+				"rds:DescribeDBInstances",
+				"rds:ModifyDBInstance"
+			],
+			"Resource": "arn:aws:rds:${region}:${account}:db:*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": "rds:ModifyDBInstance",
+			"Resource": "arn:aws:rds:${region}:${account}:og:*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": "rds:ModifyDBInstance",
+			"Resource": "arn:aws:rds:${region}:${account}:pg:*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": "rds:ModifyDBInstance",
+			"Resource": "arn:aws:rds:${region}:${account}:secgrp:*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"rds:DeleteDBSubnetGroup",
+				"rds:DescribeDBSubnetGroups"
+			],
+			"Resource": "arn:aws:rds:${region}:${account}:subgrp:*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"secretsmanager:CreateSecret",
+				"secretsmanager:DeleteSecret",
+				"secretsmanager:DescribeSecret",
+				"secretsmanager:GetResourcePolicy",
+				"secretsmanager:GetSecretValue",
+				"secretsmanager:RotateSecret",
+				"secretsmanager:TagResource"
+			],
+			"Resource": "arn:aws:secretsmanager:${region}:${account}:secret:*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		},
+		{
+			"Sid": "Statement1",
+			"Effect": "Allow",
+			"Action": [
+				"ssm:DeleteParameter",
+				"ssm:DeleteParameters",
+				"ssm:GetParameter",
+				"ssm:GetParameters",
+				"ssm:GetParametersByPath"
+			],
+			"Resource": [
+				"arn:aws:ssm:us-west-1:0123456789:parameter/*"
+			],
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/Project": [
+						"${project}"
+					]
+				},
+				"StringEqualsIgnoreCase": {
+					"aws:ResourceTag/ManagedBy": [
+						"Terraform Cloud"
+					]
+				}
+			}
+		}        
+	]
+}
