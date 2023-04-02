@@ -33,3 +33,21 @@ module "vpc" {
     Name = "${var.project_name}-${var.environment}-vpc"
   }
 }
+
+locals {
+  network_info = {
+    vpc_id                     = module.vpc.vpc_id
+    vpc_cidr_block             = module.vpc.vpc_cidr_block
+    public_subnet_ids          = module.vpc.public_subnets
+    private_subnet_ids         = module.vpc.private_subnets
+    database_subnet_ids        = module.vpc.database_subnets
+    database_subnet_group_name = module.vpc.database_subnet_group_name
+  }
+}
+
+resource "aws_ssm_parameter" "network_info" {
+  name        = "/${var.project_name}/${var.environment}/network/info"
+  description = "Network information for ${var.project_name} ${var.environment} environment"
+  type        = "String"
+  value       = jsonencode(local.network_info)
+}

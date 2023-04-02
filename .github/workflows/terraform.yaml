@@ -45,7 +45,7 @@ jobs:
   check-run:
     runs-on: ubuntu-latest
     outputs:
-      has-changed: ${{ join(steps.filter-paths.outputs.changes) == '' }}
+      run-terraform: ${{ contains(steps.filter-paths.outputs.changes, 'changed') || inputs.force-run }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -61,7 +61,7 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     needs: check-run
-    if: needs.check-run.outputs.has-changed || inputs.force-run
+    if: needs.check-run.outputs.run-terraform == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -109,7 +109,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            const output = `#### Terraform Path: \`${{ inputs.working-directory }}\`
+            #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
