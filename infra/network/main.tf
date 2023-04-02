@@ -10,6 +10,7 @@ module "vpc" {
   public_subnets   = var.public_subnet_cidrs
   database_subnets = var.database_subnet_cidrs
 
+  create_database_subnet_route_table     = true
   create_database_internet_gateway_route = true
 
   enable_dns_hostnames = true
