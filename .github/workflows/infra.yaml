@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   network:
-    uses: ./.github/workflows/terraform.yaml
+    uses: ./.github/actions/terraform.yaml
     with:
       working-directory: infra/network
       aws-role: ${{ vars.AWS_ROLE }}
