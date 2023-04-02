@@ -7,16 +7,20 @@ on:
         description: "Force apply"
         required: false
         default: "false"
+      force-run:
+        description: "Force run"
+        required: false
+        default: "false"
   push:
     branches:
       - main
     paths:
-      - "infra/**"
+      - "infra/**/*.tf"
   pull_request:
     branches:
       - main
     paths:
-      - "infra/**"
+      - "infra/**/*.tf"
 
 permissions:
   id-token: write
@@ -32,6 +36,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ github.event.inputs.force-apply == 'true' }}
+      force-run: ${{ github.event.inputs.force-run == 'true' }}
     secrets:
       terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   ecr:
@@ -42,5 +47,19 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ github.event.inputs.force-apply == 'true' }}
+      force-run: ${{ github.event.inputs.force-run == 'true' }}
+    secrets:
+      terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+  database:
+    uses: ./.github/workflows/terraform.yaml
+    needs:
+      - network
+    with:
+      working-directory: infra/database
+      aws-role: ${{ vars.AWS_ROLE }}
+      aws-region: ${{ vars.AWS_REGION }}
+      terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
+      force-apply: ${{ github.event.inputs.force-apply == 'true' }}
+      force-run: ${{ github.event.inputs.force-run == 'true' }}
     secrets:
       terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
