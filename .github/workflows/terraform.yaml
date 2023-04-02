@@ -45,7 +45,7 @@ jobs:
   check-run:
     runs-on: ubuntu-latest
     outputs:
-      has-changed: ${{ contains(steps.filter-paths.outputs.changes, 'changed') }}
+      run-terraform: ${{ contains(steps.filter-paths.outputs.changes, 'changed') || inputs.force-run }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -61,7 +61,7 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     needs: check-run
-    if: needs.check-run.outputs.has-changed || inputs.force-run
+    if: needs.check-run.outputs.run-terraform == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
