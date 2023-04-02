@@ -94,7 +94,6 @@ resource "tfe_workspace" "network" {
   name              = "network"
   organization      = data.tfe_organization.organization.name
   terraform_version = var.terraform_version
-  working_directory = "infra/network"
 }
 
 # Create Terraform Cloud workspace for the ECR infrastructure
@@ -102,7 +101,6 @@ resource "tfe_workspace" "ecr" {
   name              = "ecr"
   organization      = data.tfe_organization.organization.name
   terraform_version = var.terraform_version
-  working_directory = "infra/ecr"
 }
 
 # Create Terraform Cloud workspace for the database infrastructure
@@ -110,7 +108,6 @@ resource "tfe_workspace" "database" {
   name              = "database"
   organization      = data.tfe_organization.organization.name
   terraform_version = var.terraform_version
-  working_directory = "infra/database"
 }
 
 # TODO: Create App workspaces
