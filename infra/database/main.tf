@@ -48,6 +48,7 @@ resource "aws_db_instance" "database" {
   instance_class        = var.db_instance_type
   username              = var.db_admin_username
   password              = random_password.password.result
+  publicly_accessible   = true
   storage_type          = "gp2"
   storage_encrypted     = true
   allocated_storage     = 5
