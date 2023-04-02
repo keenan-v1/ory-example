@@ -54,7 +54,7 @@ resource "aws_db_instance" "database" {
   allocated_storage     = 5
   max_allocated_storage = 10
   skip_final_snapshot   = true # Don't create a snapshot when destroying the database, you may want to change this in production.
-  db_subnet_group_name  = local.network_info.database_subnet_group_name
+  db_subnet_group_name  = local.network_info.public_subnet_ids
   vpc_security_group_ids = [
     aws_security_group.database.id,
   ]
