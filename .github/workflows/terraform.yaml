@@ -45,14 +45,14 @@ jobs:
   check-run:
     runs-on: ubuntu-latest
     outputs:
-      has-changed: ${{ steps.changes.outputs.changed == 'true' }}
+      has-changed: ${{ join(steps.filter-paths.outputs.changes) == '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Filter Paths
         uses: dorny/paths-filter@v2
-        id: changes
+        id: filter-paths
         with:
           filters: |
             changed:
