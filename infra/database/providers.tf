@@ -22,7 +22,7 @@ provider "aws" {
     tags = {
       Project      = var.project_name
       ManagedBy    = "Terraform Cloud"
-      Organization = var.tfe_organization
+      Organization = var.organization
       Environment  = var.environment
       Workspace    = terraform.workspace
       Repository   = var.repository
@@ -31,5 +31,5 @@ provider "aws" {
 }
 
 provider "tfe" {
-  organization = var.tfe_organization
+  organization = var.organization
 }
