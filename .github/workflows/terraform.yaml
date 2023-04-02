@@ -63,15 +63,6 @@ jobs:
     needs: check-run
     if: needs.check-run.outputs.has-changed || inputs.force-run
     steps:
-      - name: Debug
-        run: |
-          echo "Working Directory: ${{ inputs.working-directory }}"
-          echo "AWS Role: ${{ inputs.aws-role }}"
-          echo "AWS Region: ${{ inputs.aws-region }}"
-          echo "Terraform Cloud Organization: ${{ inputs.terraform-cloud-organization }}"
-          echo "Force Apply: ${{ inputs.force-apply }}"
-          echo "Force Run: ${{ inputs.force-run }}"
-          echo "has-changed: ${{ needs.check-run.outputs.has-changed }}"
       - name: Checkout
         uses: actions/checkout@v3
 
