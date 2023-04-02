@@ -57,6 +57,13 @@ jobs:
           filters: |
             changed:
               - '${{ inputs.working-directory }}/**'
+      - name: Debug
+        run: |
+          echo "Changes: ${{ steps.filter-paths.outputs.changes }}"
+          echo "Has changed: ${{ steps.filter-paths.outputs.changes != '[]' }}"
+          echo "Force run: ${{ inputs.force-run }}"
+          echo "Force apply: ${{ inputs.force-apply }}"
+          echo "All filter-paths outputs: ${{ toJson(steps.filter-paths.outputs) }}"
 
   terraform:
     runs-on: ubuntu-latest
