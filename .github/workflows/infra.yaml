@@ -21,12 +21,23 @@ on:
 permissions:
   id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
   network:
     uses: ./.github/workflows/terraform.yaml
     with:
       working-directory: infra/network
+      aws-role: ${{ vars.AWS_ROLE }}
+      aws-region: ${{ vars.AWS_REGION }}
+      terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
+      force-apply: ${{ github.event.inputs.force-apply == 'true' }}
+    secrets:
+      terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+  ecr:
+    uses: ./.github/workflows/terraform.yaml
+    with:
+      working-directory: infra/ecr
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
