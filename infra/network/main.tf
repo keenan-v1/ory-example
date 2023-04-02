@@ -10,6 +10,8 @@ module "vpc" {
   public_subnets   = var.public_subnet_cidrs
   database_subnets = var.database_subnet_cidrs
 
+  create_database_internet_gateway_route = true
+
   enable_dns_hostnames = true
   enable_dns_support   = true
 
@@ -44,6 +46,7 @@ locals {
     public_subnet_ids          = module.vpc.public_subnets
     private_subnet_ids         = module.vpc.private_subnets
     database_subnet_ids        = module.vpc.database_subnets
+    public_subnet_group_name   = module.vpc.public_subnet_group_name
     database_subnet_group_name = module.vpc.database_subnet_group_name
   }
 }
