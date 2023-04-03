@@ -216,7 +216,7 @@ resource "aws_secretsmanager_secret" "application_secrets" {
 }
 
 resource "aws_secretsmanager_secret_version" "application_secrets" {
-  secret_id     = aws_secretsmanager_secret.dsn.id
+  secret_id     = aws_secretsmanager_secret.application_secrets.id
   secret_string = jsonencode(local.application_secrets)
 }
 
