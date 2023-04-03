@@ -1,0 +1,41 @@
+---
+- hosts: aws_rds
+  connection: local
+  vars:
+    project_name: "{{ lookup('env', 'PROJECT_NAME') }}"
+    environ: "{{ lookup('env', 'ENVIRONMENT') }}"
+    kratos_secret_path: "/{{ project_name }}/{{ environ }}/database/user/kratos/password"
+    aws_region: "{{ lookup('env', 'AWS_REGION') }}"
+    admin_password: "{{ lookup('amazon.aws.aws_secret', '/{{ project_name }}/{{ environ }}/database/user/admin/password', region=aws_region) }}"
+  tasks:
+    # Setup pip
+    - name: Install pip requirements
+      pip:
+        requirements: /runner/config/pip-requirements.txt
+        state: present
+    # Kratos Application
+    - name: Create Kratos Database
+      community.mysql.mysql_db:
+        name: "kratos"
+        state: present
+        login_host: "{{ hostvars[inventory_hostname]['endpoint']['address'] }}"
+        login_port: "{{ hostvars[inventory_hostname]['endpoint']['port'] }}"
+        login_user: "{{ hostvars[inventory_hostname]['master_username'] }}"
+        login_password: "{{ admin_password }}"
+    - name: Kratos User Password
+      community.aws.secretsmanager_secret:
+        name: "{{ kratos_secret_path }}"
+        state: present
+        secret_type: "string"
+        secret: "{{ lookup('community.general.random_string', length=32, special=false) }}"
+        overwrite: false
+    - name: Kratos User Provisioning
+      community.mysql.mysql_user:
+        name: "kratos"
+        password: "{{ lookup('amazon.aws.aws_secret', kratos_secret_path, region=aws_region) }}"
+        priv: "kratos.*:ALL"
+        state: present
+        login_host: "{{ hostvars[inventory_hostname]['endpoint']['address'] }}"
+        login_port: "{{ hostvars[inventory_hostname]['endpoint']['port'] }}"
+        login_user: "{{ hostvars[inventory_hostname]['master_username'] }}"
+        login_password: "{{ admin_password }}"
