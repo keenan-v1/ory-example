@@ -42,11 +42,20 @@ module "vpc" {
 
 locals {
   network_info = {
-    vpc_id                     = module.vpc.vpc_id
-    vpc_cidr_block             = module.vpc.vpc_cidr_block
-    public_subnet_ids          = module.vpc.public_subnets
-    private_subnet_ids         = module.vpc.private_subnets
+    vpc_id         = module.vpc.vpc_id
+    vpc_cidr_block = module.vpc.vpc_cidr_block
+
+    public_subnet_ids               = module.vpc.public_subnets
+    public_subnet_cidrs_blocks      = module.vpc.public_subnet_cidr_blocks
+    public_subnet_cidrs_ipv6_blocks = module.vpc.public_subnet_ipv6_cidr_blocks
+
+    private_subnet_ids        = module.vpc.private_subnets
+    private_subnet_cidrs      = module.vpc.private_subnets_cidr_blocks
+    private_subnet_cidrs_ipv6 = module.vpc.private_subnets_ipv6_cidr_blocks
+
     database_subnet_ids        = module.vpc.database_subnets
+    database_subnet_cidrs      = module.vpc.database_subnets_cidr_blocks
+    database_subnet_cidrs_ipv6 = module.vpc.database_subnets_ipv6_cidr_blocks
     database_subnet_group_name = module.vpc.database_subnet_group_name
   }
 }
