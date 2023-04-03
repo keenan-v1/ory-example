@@ -1,0 +1,12 @@
+plugin: amazon.aws.aws_rds
+ansible_python_interpreter: /usr/local/bin/python3.8
+statuses:
+  - available
+regions:
+  - us-east-1
+include_filters:
+  tag:Project: "{{ lookup('env', 'PROJECT_NAME') }}"
+  tag:Environment: "{{ lookup('env', 'ENVIRONMENT') }}"
+keyed_groups:
+  - key: engine
+  - key: region
