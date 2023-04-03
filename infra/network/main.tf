@@ -52,7 +52,7 @@ locals {
 }
 
 resource "aws_ssm_parameter" "network_info" {
-  name        = "/${var.project_name}/${var.environment}/network/info"
+  name        = "/${var.organization}/${var.project_name}/${var.environment}/network/info"
   description = "Network information for ${var.project_name} ${var.environment} environment"
   type        = "String"
   value       = jsonencode(local.network_info)

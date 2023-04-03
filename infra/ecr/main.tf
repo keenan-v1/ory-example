@@ -54,7 +54,7 @@ locals {
 
 # Push repository URIs to Parameter Store
 resource "aws_ssm_parameter" "repositories" {
-  name  = "/${var.project_name}/${var.environment}/ecr/repositories"
+  name  = "/${var.organization}/${var.project_name}/${var.environment}/ecr/repositories"
   type  = "String"
   value = jsonencode(local.repository_uris)
 }

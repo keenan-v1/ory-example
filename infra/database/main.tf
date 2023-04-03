@@ -5,7 +5,7 @@ resource "random_password" "password" {
 }
 
 data "aws_ssm_parameter" "network_info" {
-  name = "/${var.project_name}/${var.environment}/network/info"
+  name = "/${var.organization}/${var.project_name}/${var.environment}/network/info"
 }
 
 locals {
@@ -61,7 +61,7 @@ resource "aws_db_instance" "database" {
 }
 
 resource "aws_secretsmanager_secret" "database_password" {
-  name = "/${var.project_name}/${var.environment}/database/user/${var.db_admin_username}/password"
+  name = "/${var.organization}/${var.project_name}/${var.environment}/database/user/${var.db_admin_username}/password"
 }
 
 resource "aws_secretsmanager_secret_version" "database_password" {
@@ -78,7 +78,7 @@ locals {
 }
 
 resource "aws_ssm_parameter" "database_info" {
-  name  = "/${var.project_name}/${var.environment}/database/info"
+  name  = "/${var.organization}/${var.project_name}/${var.environment}/database/info"
   type  = "String"
   value = jsonencode(local.database_info)
 }

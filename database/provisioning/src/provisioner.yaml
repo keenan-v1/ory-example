@@ -2,11 +2,12 @@
 - hosts: aws_rds
   connection: local
   vars:
+    organization: "{{ lookup('env', 'ORGANIZATION') }}"
     project_name: "{{ lookup('env', 'PROJECT_NAME') }}"
     environ: "{{ lookup('env', 'ENVIRONMENT') }}"
-    kratos_secret_path: "/{{ project_name }}/{{ environ }}/database/user/kratos/password"
+    kratos_secret_path: "/{{ organization }}/{{ project_name }}/{{ environ }}/database/user/kratos/password"
     aws_region: "{{ lookup('env', 'AWS_REGION') }}"
-    admin_password: "{{ lookup('amazon.aws.aws_secret', '/{{ project_name }}/{{ environ }}/database/user/admin/password', region=aws_region) }}"
+    admin_password: "{{ lookup('amazon.aws.aws_secret', '/{{ organization }}/{{ project_name }}/{{ environ }}/database/user/admin/password', region=aws_region) }}"
   tasks:
     # Setup pip
     - name: Install pip requirements

@@ -5,6 +5,7 @@ statuses:
 regions:
   - us-east-1
 include_filters:
+  tag:Organization: "{{ lookup('env', 'ORGANIZATION') }}"
   tag:Project: "{{ lookup('env', 'PROJECT_NAME') }}"
   tag:Environment: "{{ lookup('env', 'ENVIRONMENT') }}"
 keyed_groups:

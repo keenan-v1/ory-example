@@ -2,7 +2,8 @@ FROM quay.io/ansible/ansible-runner:latest
 
 COPY src/config/ /runner/config/
 
-ENV PROJECT_NAME=ory
+ENV ORGANIZATION=example-org
+ENV PROJECT_NAME=example-project
 ENV ENVIRONMENT=dev
 
 RUN yum install -y mysql python3-pip && \
