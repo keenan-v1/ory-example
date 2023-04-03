@@ -103,7 +103,7 @@ module "autoscaling" {
 }
 
 resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/aws/ecs/${local.cluster_name}"
+  name              = "/${var.organization}/${var.project_name}/${var.environment}/ecs/${local.cluster_name}"
   retention_in_days = 7
 }
 
