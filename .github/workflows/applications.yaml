@@ -1,0 +1,41 @@
+name: Applications
+
+on:
+  workflow_dispatch:
+    inputs:
+      force-apply:
+        description: "Force apply"
+        required: false
+        default: "false"
+      force-run:
+        description: "Force run"
+        required: false
+        default: "false"
+  push:
+    branches:
+      - main
+    paths:
+      - "applications/**/*.tf"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "applications/**/*.tf"
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  kratos:
+    uses: ./.github/workflows/terraform.yaml
+    with:
+      working-directory: applications/kratos
+      aws-role: ${{ vars.AWS_ROLE }}
+      aws-region: ${{ vars.AWS_REGION }}
+      terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
+      force-apply: ${{ github.event.inputs.force-apply == 'true' }}
+      force-run: ${{ github.event.inputs.force-run == 'true' }}
+    secrets:
+      terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
