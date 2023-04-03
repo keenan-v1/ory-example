@@ -252,19 +252,19 @@ resource "aws_ecs_task_definition" "service" {
         secrets = [
           {
             name      = "DSN",
-            valueFrom = "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:/${var.organization}/${var.project_name}/${var.environment}/application/${var.service_name}:dsn::"
+            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:dsn::"
           },
           {
             name      = "SECRETS_COOKIE",
-            valueFrom = "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/${var.environment}/application/${var.service_name}:secrets_cookie::"
+            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:secrets_cookie::"
           },
           {
             name      = "SECRETS_CIPHER",
-            valueFrom = "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/${var.environment}/application/${var.service_name}:secrets_cipher::"
+            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:secrets_cipher::"
           },
           {
             name      = "SECRETS_DEFAULT",
-            valueFrom = "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/${var.environment}/application/${var.service_name}:secrets_default::"
+            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:secrets_default::"
           }
         ]
       }

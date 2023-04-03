@@ -51,3 +51,9 @@ variable "db_user" {
   description = "The database user to use"
   default     = "kratos"
 }
+
+variable "db_name" {
+  type        = string
+  description = "The database name to use"
+  default     = "kratos"
+}
