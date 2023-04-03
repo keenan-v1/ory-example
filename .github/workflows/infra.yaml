@@ -63,3 +63,16 @@ jobs:
       force-run: ${{ github.event.inputs.force-run == 'true' }}
     secrets:
       terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+  ecs:
+    uses: ./.github/workflows/terraform.yaml
+    needs:
+      - network
+    with:
+      working-directory: infra/ecs
+      aws-role: ${{ vars.AWS_ROLE }}
+      aws-region: ${{ vars.AWS_REGION }}
+      terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
+      force-apply: ${{ github.event.inputs.force-apply == 'true' }}
+      force-run: ${{ github.event.inputs.force-run == 'true' }}
+    secrets:
+      terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
