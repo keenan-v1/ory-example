@@ -246,6 +246,20 @@ data "aws_iam_policy_document" "ecs_task_secrets_manager_policy" {
   }
 }
 
+// Create a CloudWatch logging policy
+data "aws_iam_policy_document" "ecs_task_cloudwatch_logging_policy" {
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = [
+      "${aws_cloudwatch_log_group.log.arn}:*",
+    ]
+  }
+}
+
 resource "aws_iam_role" "ecs_execution_role" {
   name               = "${var.project_name}-${var.environment}-${var.service_name}-ecs-execution-role"
   assume_role_policy = data.aws_iam_policy_document.ecs_execution_assume_role_policy.json
@@ -255,6 +269,12 @@ resource "aws_iam_role_policy" "ecs_task_secrets_manager_policy" {
   name   = "${var.project_name}-${var.environment}-${var.service_name}-ecs-task-secrets-manager-policy"
   role   = aws_iam_role.ecs_execution_role.id
   policy = data.aws_iam_policy_document.ecs_task_secrets_manager_policy.json
+}
+
+resource "aws_iam_role_policy" "ecs_task_cloudwatch_logging_policy" {
+  name   = "${var.project_name}-${var.environment}-${var.service_name}-ecs-task-cloudwatch-logging-policy"
+  role   = aws_iam_role.ecs_execution_role.id
+  policy = data.aws_iam_policy_document.ecs_task_cloudwatch_logging_policy.json
 }
 
 resource "aws_ecs_task_definition" "service" {
