@@ -32,7 +32,7 @@ variable "instance_type" {
 variable "ami_ssm_parameter" {
   type        = string
   description = "The SSM parameter to use for the AMI"
-  default     = "/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended/image_id"
+  default     = "/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended"
 }
 
 variable "cidr_allow_list_parameter" {
