@@ -220,8 +220,43 @@ resource "aws_secretsmanager_secret_version" "application_secrets" {
   secret_string = jsonencode(local.application_secrets)
 }
 
+data "aws_iam_policy_document" "ecs_execution_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "ecs_task_secrets_manager_policy" {
+  statement {
+    actions = [
+      "secretsmanager:GetSecretValue",
+    ]
+
+    resources = [
+      aws_secretsmanager_secret.application_secrets.arn,
+    ]
+  }
+}
+
+resource "aws_iam_role" "ecs_execution_role" {
+  name               = "${var.project_name}-${var.environment}-${var.service_name}-ecs-execution-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_execution_assume_role_policy.json
+}
+
+resource "aws_iam_role_policy" "ecs_task_secrets_manager_policy" {
+  name   = "${var.project_name}-${var.environment}-${var.service_name}-ecs-task-secrets-manager-policy"
+  role   = aws_iam_role.ecs_execution_role.id
+  policy = data.aws_iam_policy_document.ecs_task_secrets_manager_policy.json
+}
+
 resource "aws_ecs_task_definition" "service" {
-  family = var.service_name
+  family             = var.service_name
+  execution_role_arn = aws_iam_role.ecs_execution_role.arn
   container_definitions = jsonencode(
     [
       {
@@ -272,7 +307,6 @@ resource "aws_ecs_task_definition" "service" {
   )
 }
 
-// ECS Service
 resource "aws_ecs_service" "service" {
   name            = var.service_name
   cluster         = local.cluster_info.cluster_name
