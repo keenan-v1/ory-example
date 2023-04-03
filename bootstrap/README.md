@@ -31,6 +31,7 @@ environment="your-env"
 hosted_zone_name="example.com"
 # Optional, only required if you already have an OIDC provider for GitHub!
 oidc_provider_arn="arn::of::provider"
+smtp_connection_uri="smtps://test:test@mailslurper:1025/?skip_ssl_verify=true"
 ```
 
 Next, initialize Terraform and your backend:

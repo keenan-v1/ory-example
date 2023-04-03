@@ -70,3 +70,17 @@ resource "github_actions_variable" "oidc_role_arn" {
   variable_name = "aws_role"
   value         = aws_iam_role.oidc.arn
 }
+
+# Add Hosted Zone as a GitHub Actions Variable
+resource "github_actions_variable" "hosted_zone_name" {
+  repository    = split("/", var.repository)[1]
+  variable_name = "hosted_zone_name"
+  value         = var.hosted_zone_name
+}
+
+# Add SMTP Connection URI as a GitHub Actions Secret
+resource "github_actions_secret" "smtp_connection_uri" {
+  repository      = split("/", var.repository)[1]
+  secret_name     = "smtp_connection_uri"
+  plaintext_value = var.smtp_connection_uri
+}

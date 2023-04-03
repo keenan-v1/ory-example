@@ -44,6 +44,11 @@ variable "hosted_zone_name" {
   description = "The name of the hosted zone to use for the organization"
 }
 
+variable "smtp_connection_uri" {
+  type        = string
+  description = "The SMTP connection URI to use"
+}
+
 variable "oidc_provider_arn" {
   type        = string
   description = "The ARN of the OIDC provider to use"
