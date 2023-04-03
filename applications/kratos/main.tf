@@ -177,9 +177,9 @@ module "alb" {
 }
 
 resource "aws_autoscaling_attachment" "asg_to_alb" {
-  for_each               = toset(module.alb.target_group_arns)
+  count                  = length(module.alb.target_group_arns)
   autoscaling_group_name = local.cluster_info.autoscaling_group_id
-  lb_target_group_arn    = each.value
+  lb_target_group_arn    = module.alb.target_group_arns[count.index]
 }
 
 resource "aws_cloudwatch_log_group" "log" {
