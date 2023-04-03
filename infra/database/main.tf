@@ -8,9 +8,16 @@ data "aws_ssm_parameter" "network_info" {
   name = "/${var.organization}/${var.project_name}/${var.environment}/network/info"
 }
 
-locals {
-  network_info = jsondecode(data.aws_ssm_parameter.network_info.value)
+data "aws_ssm_parameter" "cidr_allow_list" {
+  count = var.cidr_allow_list_parameter == "" ? 0 : 1
+  name  = var.cidr_allow_list_parameter
 }
+
+locals {
+  network_info    = jsondecode(data.aws_ssm_parameter.network_info.value)
+  cidr_allow_list = var.cidr_allow_list_parameter == "" ? [] : split(",", data.aws_ssm_parameter.cidr_allow_list[0].value)
+}
+
 
 resource "aws_security_group" "database" {
   name_prefix = "${var.project_name}-${var.environment}-database-sg-"
@@ -22,9 +29,11 @@ resource "aws_security_group" "database" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "TCP"
-    cidr_blocks = [
-      local.network_info.vpc_cidr_block
-    ]
+    cidr_blocks = concat(
+      local.network_info.private_subnets_cidr_blocks,
+      local.network_info.database_subnets_cidr_blocks,
+      local.cidr_allow_list,
+    )
   }
 
   egress {
