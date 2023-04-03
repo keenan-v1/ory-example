@@ -58,7 +58,7 @@ module "alb" {
   load_balancer_type = "application"
 
   vpc_id  = local.network_info.vpc_id
-  subnets = local.network_info.public_subnets
+  subnets = local.network_info.public_subnet_ids
 
   security_group_name = "${var.project_name}-${var.environment}-alb-sg"
   security_group_rules = {
@@ -97,7 +97,7 @@ module "alb" {
 
   target_groups = [
     {
-      name_prefix          = "kratos-public-"
+      name_prefix          = "pub-"
       backend_protocol     = "HTTP"
       backend_port         = 4433
       target_type          = "instance"
@@ -115,7 +115,7 @@ module "alb" {
       }
     },
     {
-      name_prefix          = "kratos-admin-"
+      name_prefix          = "adm-"
       backend_protocol     = "HTTP"
       backend_port         = 4434
       target_type          = "instance"
