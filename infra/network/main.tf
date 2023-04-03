@@ -46,17 +46,17 @@ locals {
     vpc_cidr_block = module.vpc.vpc_cidr_block
 
     public_subnet_ids               = module.vpc.public_subnets
-    public_subnet_cidrs_blocks      = module.vpc.public_subnet_cidr_blocks
-    public_subnet_cidrs_ipv6_blocks = module.vpc.public_subnet_ipv6_cidr_blocks
+    public_subnets_cidr_blocks      = module.vpc.public_subnets_cidr_blocks
+    public_subnets_ipv6_cidr_blocks = module.vpc.public_subnets_ipv6_cidr_blocks
 
-    private_subnet_ids        = module.vpc.private_subnets
-    private_subnet_cidrs      = module.vpc.private_subnets_cidr_blocks
-    private_subnet_cidrs_ipv6 = module.vpc.private_subnets_ipv6_cidr_blocks
+    private_subnet_ids               = module.vpc.private_subnets
+    private_subnets_cidr_blocks      = module.vpc.private_subnets_cidr_blocks
+    private_subnets_ipv6_cidr_blocks = module.vpc.private_subnets_ipv6_cidr_blocks
 
-    database_subnet_ids        = module.vpc.database_subnets
-    database_subnet_cidrs      = module.vpc.database_subnets_cidr_blocks
-    database_subnet_cidrs_ipv6 = module.vpc.database_subnets_ipv6_cidr_blocks
-    database_subnet_group_name = module.vpc.database_subnet_group_name
+    database_subnet_ids               = module.vpc.database_subnets
+    database_subnets_cidr_blocks      = module.vpc.database_subnets_cidr_blocks
+    database_subnets_ipv6_cidr_blocks = module.vpc.database_subnets_ipv6_cidr_blocks
+    database_subnet_group_name        = module.vpc.database_subnet_group_name
   }
 }
 
