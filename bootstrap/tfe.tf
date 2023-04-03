@@ -61,6 +61,16 @@ resource "tfe_variable" "repository" {
   variable_set_id = tfe_variable_set.defaults.id
 }
 
+# Create Terraform Cloud variable for the Hosted Zone name
+resource "tfe_variable" "hosted_zone_name" {
+  key             = "hosted_zone_name"
+  value           = var.hosted_zone_name
+  sensitive       = false
+  category        = "terraform"
+  description     = "The name of the hosted zone to use for the organization"
+  variable_set_id = tfe_variable_set.defaults.id
+}
+
 # Create Terraform Cloud variable set for AWS credentials
 resource "tfe_variable_set" "aws" {
   name         = "aws-credentials"
@@ -110,5 +120,9 @@ resource "tfe_workspace" "database" {
   terraform_version = var.terraform_version
 }
 
-# TODO: Create App workspaces
-
+# Create Terraform Cloud workspace for the ECS infrastructure
+resource "tfe_workspace" "ecs" {
+  name              = "ecs"
+  organization      = data.tfe_organization.organization.name
+  terraform_version = var.terraform_version
+}

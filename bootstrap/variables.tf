@@ -31,12 +31,17 @@ variable "github_token" {
 variable "terraform_version" {
   type        = string
   description = "The version of Terraform to use"
-  default     = "1.4.1"
+  default     = "1.4.4"
 }
 
 variable "terraform_token" {
   type        = string
   description = "The Terraform Cloud token to use"
+}
+
+variable "hosted_zone_name" {
+  type        = string
+  description = "The name of the hosted zone to use for the organization"
 }
 
 variable "oidc_provider_arn" {
