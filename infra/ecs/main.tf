@@ -87,7 +87,7 @@ module "autoscaling" {
     ReadSSMSecretsManager               = aws_iam_policy.read_ssm_secretsmanager.arn
   }
 
-  vpc_zone_identifier = local.network_info.private_subnet_ids
+  vpc_zone_identifier = local.network_info.public_subnet_ids
   health_check_type   = "EC2"
   min_size            = 0
   max_size            = 2
