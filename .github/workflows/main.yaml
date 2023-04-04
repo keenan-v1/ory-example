@@ -1,0 +1,30 @@
+name: Main workflow
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/**/*.tf"
+      - "applications/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "infra/**/*.tf"
+      - "applications/**"
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  run-infra:
+    name: Run Infrastructure
+    uses: "./.github/workflows/infra_main.yaml"
+
+  run-applications:
+    name: Run Applications
+    needs: run-infra
+    uses: "./.github/workflows/application_main.yaml"

@@ -1,0 +1,32 @@
+# For local testing, you can use the following docker-compose.yml file.
+version: '3.7'
+services:
+  kratos-selfservice-ui-node:
+    image: oryd/kratos-selfservice-ui-node:v0.11.1
+    environment:
+      - KRATOS_PUBLIC_URL=http://kratos:4433/
+      - KRATOS_BROWSER_URL=http://127.0.0.1:4433/
+      - PORT=4455
+      - SECURITY_MODE=
+    networks:
+      - intranet
+    restart: on-failure
+    ports:
+      - "4455:4455"
+  kratos:
+    build: ./applications/kratos
+    ports:
+      - '4433:4433' # public
+      - '4434:4434' # admin
+    restart: unless-stopped
+    networks:
+      - intranet
+  mailslurper:
+    image: oryd/mailslurper:latest-smtps
+    ports:
+      - '4436:4436'
+      - '4437:4437'
+    networks:
+      - intranet
+networks:
+  intranet:

@@ -1,0 +1,113 @@
+name: Deploy Application
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        description: "Working directory"
+        required: true
+      application-name:
+        type: string
+        description: "Application name"
+        required: true
+      aws-role:
+        type: string
+        description: "AWS Role"
+        required: true
+      aws-region:
+        type: string
+        description: "AWS Region"
+        required: true
+      force-deploy:
+        type: boolean
+        description: "Force deploy"
+        required: false
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-run:
+    name: Check Run
+    runs-on: ubuntu-latest
+    outputs:
+      run-tasks: ${{ contains(steps.filter-paths.outputs.changes, 'changed') || inputs.force-deploy }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Filter Paths
+        uses: dorny/paths-filter@v2
+        id: filter-paths
+        with:
+          filters: |
+            changed:
+              - '${{ inputs.working-directory }}/**'
+
+  deploy-to-ecs:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: check-run
+    if: needs.check-run.outputs.run-tasks == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup AWS Role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ inputs.aws-role }}
+          aws-region: ${{ inputs.aws-region }}
+          role-duration-seconds: 3600
+          role-session-name: ${{ github.event.repository.name }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        continue-on-error: true
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ inputs.application-name }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG database/provisioning
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Update Pull Request
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "${{ steps.build-image.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Working Path 📁: \`${{ inputs.working-directory }}\`
+            #### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`
+
+            <details><summary>Show Build Output</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Build Status
+        if: steps.build-image.outcome == 'failure'
+        run: exit 1

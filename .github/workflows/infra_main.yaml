@@ -1,6 +1,7 @@
 name: Infrastructure
 
 on:
+  workflow_call:
   workflow_dispatch:
     inputs:
       force-apply:
@@ -11,16 +12,6 @@ on:
         description: "Force run"
         required: false
         default: "false"
-  push:
-    branches:
-      - main
-    paths:
-      - "infra/**/*.tf"
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "infra/**/*.tf"
 
 permissions:
   id-token: write
@@ -29,7 +20,8 @@ permissions:
 
 jobs:
   network:
-    uses: ./.github/workflows/terraform.yaml
+    name: Network
+    uses: ./.github/workflows/infra_terraform.yaml
     with:
       working-directory: infra/network
       aws-role: ${{ vars.AWS_ROLE }}
@@ -40,7 +32,8 @@ jobs:
     secrets:
       terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   ecr:
-    uses: ./.github/workflows/terraform.yaml
+    name: ECR
+    uses: ./.github/workflows/infra_terraform.yaml
     with:
       working-directory: infra/ecr
       aws-role: ${{ vars.AWS_ROLE }}
@@ -51,7 +44,8 @@ jobs:
     secrets:
       terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   database:
-    uses: ./.github/workflows/terraform.yaml
+    name: Database
+    uses: ./.github/workflows/infra_terraform.yaml
     needs:
       - network
     with:
@@ -64,7 +58,8 @@ jobs:
     secrets:
       terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   ecs:
-    uses: ./.github/workflows/terraform.yaml
+    name: ECS
+    uses: ./.github/workflows/infra_terraform.yaml
     needs:
       - network
     with:
@@ -77,7 +72,8 @@ jobs:
     secrets:
       terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   kratos:
-    uses: ./.github/workflows/terraform.yaml
+    name: "Application: Kratos"
+    uses: ./.github/workflows/infra_terraform.yaml
     needs:
       - network
       - ecs
