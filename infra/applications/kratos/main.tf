@@ -255,19 +255,6 @@ data "aws_iam_policy_document" "ecs_task_secrets_manager_policy" {
   }
 }
 
-data "aws_iam_policy_document" "ecs_task_ssm_policy" {
-  statement {
-    actions = [
-      "ssm:GetParameters",
-      "ssm:GetParameter"
-    ]
-
-    resources = [
-      aws_ssm_parameter.environment_variables.arn,
-    ]
-  }
-}
-
 // Create a CloudWatch logging policy
 data "aws_iam_policy_document" "ecs_task_cloudwatch_logging_policy" {
   statement {
@@ -291,12 +278,6 @@ resource "aws_iam_role_policy" "ecs_task_secrets_manager_policy" {
   name   = "${var.project_name}-${var.environment}-${var.service_name}-ecs-task-secrets-manager-policy"
   role   = aws_iam_role.ecs_execution_role.id
   policy = data.aws_iam_policy_document.ecs_task_secrets_manager_policy.json
-}
-
-resource "aws_iam_role_policy" "ecs_task_ssm_parameter_policy" {
-  name   = "${var.project_name}-${var.environment}-${var.service_name}-ecs-task-ssm-parameter-policy"
-  role   = aws_iam_role.ecs_execution_role.id
-  policy = data.aws_iam_policy_document.ecs_task_ssm_policy.json
 }
 
 resource "aws_iam_role_policy" "ecs_task_cloudwatch_logging_policy" {
