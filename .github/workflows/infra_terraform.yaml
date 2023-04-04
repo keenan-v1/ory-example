@@ -76,7 +76,7 @@ jobs:
           role-duration-seconds: 3600
           role-session-name: ${{ github.event.repository.name }}
 
-      - name: Terraform Init
+      - name: Terraform Setup
         uses: hashicorp/setup-terraform@v2.0.3
         with:
           cli_config_credentials_token: ${{ secrets.terraform-cloud-token }}
