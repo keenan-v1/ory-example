@@ -77,10 +77,3 @@ resource "github_actions_variable" "hosted_zone_name" {
   variable_name = "hosted_zone_name"
   value         = var.hosted_zone_name
 }
-
-# Add SMTP Connection URI as a GitHub Actions Secret
-resource "github_actions_secret" "smtp_connection_uri" {
-  repository      = split("/", var.repository)[1]
-  secret_name     = "smtp_connection_uri"
-  plaintext_value = var.smtp_connection_uri
-}

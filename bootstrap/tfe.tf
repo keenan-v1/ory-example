@@ -126,3 +126,30 @@ resource "tfe_workspace" "ecs" {
   organization      = data.tfe_organization.organization.name
   terraform_version = var.terraform_version
 }
+
+# Create Terraform Cloud workspace for the Kratos application
+resource "tfe_workspace" "kratos" {
+  name              = "kratos"
+  organization      = data.tfe_organization.organization.name
+  terraform_version = var.terraform_version
+}
+
+# Create Terraform Cloud variable set for Kratos-specific variables
+resource "tfe_variable_set" "kratos" {
+  name         = "kratos-tfvars"
+  description  = "Kratos-specific variables for Terraform Cloud"
+  organization = data.tfe_organization.organization.name
+  workspace_ids = [
+    tfe_workspace.kratos.id
+  ]
+}
+
+# Create Terraform Cloud variable for the SMTP server
+resource "tfe_variable" "smtp_connection_uri" {
+  key             = "smtp_connection_uri"
+  value           = var.smtp_connection_uri
+  sensitive       = true
+  category        = "terraform"
+  description     = "SMTP connection URI"
+  variable_set_id = tfe_variable_set.kratos.id
+}
