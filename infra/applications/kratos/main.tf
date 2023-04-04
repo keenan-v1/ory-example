@@ -14,7 +14,7 @@ locals {
   network_info  = jsondecode(data.aws_ssm_parameter.network_info.value)
   cluster_info  = jsondecode(data.aws_ssm_parameter.cluster_info.value)
   database_info = jsondecode(data.aws_ssm_parameter.database_info.value)
-  lb_domain     = "auth.${var.environment}.${var.hosted_zone_name}"
+  lb_domain     = var.environment == "production" ? "auth.${var.hosted_zone_name}" : "auth.${var.environment}.${var.hosted_zone_name}"
 }
 
 data "aws_route53_zone" "domain" {
@@ -204,10 +204,19 @@ resource "random_password" "application_secrets" {
 
 locals {
   application_secrets = {
-    dsn             = "mysql://${var.db_user}:${data.aws_secretsmanager_secret_version.db_user_password.secret_string}@${local.database_info.host}:${local.database_info.port}/${var.db_name}?parseTime=true"
-    secrets_cookie  = random_password.application_secrets[0].result
-    secrets_cipher  = random_password.application_secrets[1].result
-    secrets_default = random_password.application_secrets[2].result
+    dsn                 = "mysql://${var.db_user}:${data.aws_secretsmanager_secret_version.db_user_password.secret_string}@${local.database_info.host}:${local.database_info.port}/${var.db_name}?parseTime=true"
+    secrets_cookie      = random_password.application_secrets[0].result
+    secrets_cipher      = random_password.application_secrets[1].result
+    secrets_default     = random_password.application_secrets[2].result
+    smtp_connection_uri = var.smtp_connection_uri
+  }
+  # Replace these with your own values
+  environment_variables = {
+    issuer                     = var.project_name
+    public_base_url            = "https://${local.lb_domain}"
+    admin_base_url             = "https://${local.lb_domain}/admin"
+    default_browser_return_url = "https://dashboard.${var.hosted_zone_name}/"
+    login_base_url             = "https://login.${var.hosted_zone_name}"
   }
 }
 
@@ -246,6 +255,19 @@ data "aws_iam_policy_document" "ecs_task_secrets_manager_policy" {
   }
 }
 
+data "aws_iam_policy_document" "ecs_task_ssm_policy" {
+  statement {
+    actions = [
+      "ssm:GetParameters",
+      "ssm:GetParameter"
+    ]
+
+    resources = [
+      aws_ssm_parameter.environment_variables.arn,
+    ]
+  }
+}
+
 // Create a CloudWatch logging policy
 data "aws_iam_policy_document" "ecs_task_cloudwatch_logging_policy" {
   statement {
@@ -269,6 +291,12 @@ resource "aws_iam_role_policy" "ecs_task_secrets_manager_policy" {
   name   = "${var.project_name}-${var.environment}-${var.service_name}-ecs-task-secrets-manager-policy"
   role   = aws_iam_role.ecs_execution_role.id
   policy = data.aws_iam_policy_document.ecs_task_secrets_manager_policy.json
+}
+
+resource "aws_iam_role_policy" "ecs_task_ssm_parameter_policy" {
+  name   = "${var.project_name}-${var.environment}-${var.service_name}-ecs-task-ssm-parameter-policy"
+  role   = aws_iam_role.ecs_execution_role.id
+  policy = data.aws_iam_policy_document.ecs_task_ssm_policy.json
 }
 
 resource "aws_iam_role_policy" "ecs_task_cloudwatch_logging_policy" {
@@ -307,6 +335,28 @@ resource "aws_ecs_task_definition" "service" {
             awslogs-stream-prefix = "ecs-${var.service_name}-"
           }
         }
+        environment = [
+          {
+            name  = "ISSUER",
+            value = local.environment_variables.issuer
+          },
+          {
+            name  = "PUBLIC_BASE_URL",
+            value = local.environment_variables.public_base_url
+          },
+          {
+            name  = "ADMIN_BASE_URL",
+            value = local.environment_variables.admin_base_url
+          },
+          {
+            name  = "DEFAULT_BROWSER_RETURN_URL",
+            value = local.environment_variables.default_browser_return_url
+          },
+          {
+            name  = "LOGIN_BASE_URL",
+            value = local.environment_variables.login_base_url
+          }
+        ]
         secrets = [
           {
             name      = "DSN",
@@ -323,6 +373,10 @@ resource "aws_ecs_task_definition" "service" {
           {
             name      = "SECRETS_DEFAULT",
             valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:secrets_default::"
+          },
+          {
+            name      = "COURIER_SMTP_CONNECTION_URI",
+            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:smtp_connection_uri::"
           }
         ]
       }
@@ -335,6 +389,11 @@ resource "aws_ecs_service" "service" {
   cluster         = local.cluster_info.cluster_name
   task_definition = aws_ecs_task_definition.service.arn
   desired_count   = 2
+
+  ordered_placement_strategy {
+    type  = "spread"
+    field = "instanceId"
+  }
 
   load_balancer {
     target_group_arn = module.alb.target_group_arns[0]

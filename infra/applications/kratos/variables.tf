@@ -28,6 +28,11 @@ variable "hosted_zone_name" {
   description = "The Route53 hosted zone name to use"
 }
 
+variable "smtp_connection_uri" {
+  type        = string
+  description = "The SMTP connection URI to use"
+}
+
 variable "alb_ssl_policy" {
   type        = string
   description = "The SSL policy to use for the ALB"

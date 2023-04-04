@@ -1,0 +1,101 @@
+version: v0.11.0
+
+# This is configured via Task Definition environment variables
+# dsn: memory
+
+serve:
+  public:
+    base_url: ${PUBLIC_BASE_URL}
+    cors:
+      enabled: true
+  admin:
+    base_url: ${ADMIN_BASE_URL}
+
+selfservice:
+  default_browser_return_url: ${DEFAULT_BROWSER_RETURN_URL}
+  allowed_return_urls:
+    - ${DEFAULT_BROWSER_RETURN_URL}
+    - ${LOGIN_BASE_URL}
+
+  methods:
+    password:
+      enabled: true
+    totp:
+      config:
+        issuer: ${ISSUER}
+      enabled: true
+    lookup_secret:
+      enabled: true
+    link:
+      enabled: true
+    code:
+      enabled: true
+
+  flows:
+    error:
+      ui_url: ${LOGIN_BASE_URL}/error
+
+    settings:
+      ui_url: ${LOGIN_BASE_URL}/settings
+      privileged_session_max_age: 15m
+      required_aal: highest_available
+
+    recovery:
+      enabled: true
+      ui_url: ${LOGIN_BASE_URL}/recovery
+      use: code
+
+    verification:
+      enabled: true
+      ui_url: ${LOGIN_BASE_URL}/verification
+      use: code
+      after:
+        default_browser_return_url: ${DEFAULT_BROWSER_RETURN_URL}
+
+    logout:
+      after:
+        default_browser_return_url: ${LOGIN_BASE_URL}/login
+
+    login:
+      ui_url: ${LOGIN_BASE_URL}/login
+      lifespan: 10m
+
+    registration:
+      lifespan: 10m
+      ui_url: ${LOGIN_BASE_URL}/registration
+      after:
+        password:
+          hooks:
+            - hook: session
+#            - hook: show_verification_ui
+
+log:
+  level: info
+  format: json
+  leak_sensitive_values: false
+
+# These are configured via Task Definition environment variables
+# secrets:
+#   cookie:
+#     - 32-LONG-SECRET-NOT-SECURE-AT-ALL
+#   cipher:
+#     - 32-LONG-SECRET-NOT-SECURE-AT-ALL
+
+ciphers:
+  algorithm: xchacha20-poly1305
+
+hashers:
+  algorithm: bcrypt
+  bcrypt:
+    cost: 8
+
+identity:
+  default_schema_id: default
+  schemas:
+    - id: default
+      url: file:///home/ory/identity.schema.json
+#
+# This is configured via Task Definition environment variables
+# courier:
+#   smtp:
+#     connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
