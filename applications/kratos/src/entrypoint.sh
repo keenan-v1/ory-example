@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Generate the configuration
 envsubst < /home/ory/template.kratos.yaml > /home/ory/kratos.yaml
 
 # Perform database migrations only if MIGRATIONS_AUTO is set to true

@@ -393,6 +393,7 @@ resource "aws_ecs_service" "service" {
   }
 }
 
+# Set the application info in SSM, this is consumed by GitHub Actions
 locals {
   application_info = {
     cluster_name        = local.cluster_info.cluster_name
