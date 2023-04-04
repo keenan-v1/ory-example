@@ -12,6 +12,13 @@ resource "github_actions_variable" "terraform_cloud_organization" {
   value         = data.tfe_organization.organization.name
 }
 
+# Create the Project Name variable in GitHub
+resource "github_actions_variable" "project_name" {
+  repository    = split("/", var.repository)[1]
+  variable_name = "project_name"
+  value         = var.project_name
+}
+
 # Add AWS Region to GitHub Actions Variables
 resource "github_actions_variable" "aws_region" {
   repository    = split("/", var.repository)[1]

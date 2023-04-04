@@ -2,6 +2,10 @@ name: Deploy Application
 on:
   workflow_call:
     inputs:
+      deploy-environment:
+        type: string
+        description: "Deploy environment"
+        required: true
       working-directory:
         type: string
         description: "Working directory"
@@ -9,6 +13,10 @@ on:
       application-name:
         type: string
         description: "Application name"
+        required: true
+      image:
+        type: string
+        description: "The image to deploy"
         required: true
       aws-role:
         type: string
@@ -28,6 +36,9 @@ permissions:
   id-token: write
   contents: read
   pull-requests: write
+
+env:
+  SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ inputs.deploy-environment }}"
 
 jobs:
   check-run:
@@ -53,9 +64,6 @@ jobs:
     needs: check-run
     if: needs.check-run.outputs.run-tasks == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
       - name: Setup AWS Role
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -64,50 +72,38 @@ jobs:
           role-duration-seconds: 3600
           role-session-name: ${{ github.event.repository.name }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        continue-on-error: true
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ inputs.application-name }}
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Fetch Application Info
+        id: application-info
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG database/provisioning
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/application/${{ inputs.application-name }}/info" --query "Parameter.Value" --output text > info.json
+          echo "application_info=$(cat info.json)" >> $GITHUB_OUTPUT
 
-      - name: Update Pull Request
-        uses: actions/github-script@v6
-        if: github.event_name == 'pull_request'
-        env:
-          PLAN: "${{ steps.build-image.outputs.stdout }}"
+      - name: Fetch Application Info & Task Definition
+        id: download-task-definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ fromJson(steps.application-info.outputs.application_info).task_definition_arn }} > task-definition.json
+
+      - name: Update Task Definition
+        id: update-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Working Path 📁: \`${{ inputs.working-directory }}\`
-            #### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`
+          task-definition: task-definition.json
+          container-name: ${{ fromJson(steps.application-info.outputs.application_info).container_name }}
+          image: ${{ inputs.image }}
 
-            <details><summary>Show Build Output</summary>
+      - name: Deploy Amazon ECS task definition
+        id: deploy
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.update-task-definition.outputs.task-definition }}
+          service: ${{ fromJson(steps.application-info.outputs.application_info).service_name }}
+          cluster: ${{ fromJson(steps.application-info.outputs.application_info).cluster_name }}
+          wait-for-service-stability: true
 
-            \`\`\`\n
-            ${process.env.PLAN}
-            \`\`\`
-
-            </details>
-
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
-
-      - name: Build Status
-        if: steps.build-image.outcome == 'failure'
-        run: exit 1
+      - name: Summary
+        if: always()
+        run: |
+          echo "Working Path 📁: ${{ inputs.working-directory }}" >> $GITHUB_STEP_SUMMARY
+          echo "Image 🖼: ${{ inputs.image }}" >> $GITHUB_STEP_SUMMARY
+          echo "Task Defintion Update 🖌: ${{ steps.update-task-definition.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "Deploy Status 🚀: ${{ steps.deploy.outcome }}" >> $GITHUB_STEP_SUMMARY

@@ -55,6 +55,7 @@ jobs:
     with:
       working-directory: applications/${{ github.event.inputs.application-name }}
       application-name: ${{ github.event.inputs.application-name }}
+      image: ${{ needs.build.outputs.image }}
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
       force-deploy: ${{ github.event.inputs.force-deploy == 'true' }}

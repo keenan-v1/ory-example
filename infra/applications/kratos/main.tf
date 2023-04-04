@@ -392,3 +392,20 @@ resource "aws_ecs_service" "service" {
     ignore_changes = [desired_count, task_definition]
   }
 }
+
+locals {
+  application_info = {
+    cluster_name        = local.cluster_info.cluster_name
+    container_name      = var.service_name
+    service_name        = aws_ecs_service.service.name
+    service_id          = aws_ecs_service.service.id
+    task_definition_arn = aws_ecs_task_definition.service.arn_without_revision
+  }
+}
+
+resource "aws_ssm_parameter" "application_into" {
+  name        = "/${var.organization}/${var.project_name}/${var.environment}/application/${var.service_name}/info"
+  description = "Application info"
+  type        = "String"
+  value       = jsonencode(local.application_info)
+}

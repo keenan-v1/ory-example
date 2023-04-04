@@ -23,6 +23,10 @@ on:
         description: "Force build"
         required: false
         default: false
+    outputs:
+      image:
+        description: "The newly built image"
+        value: ${{ jobs.build.outputs.image }}
 
 permissions:
   id-token: write
@@ -52,6 +56,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: check-run
     if: needs.check-run.outputs.run-tasks == 'true'
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -78,13 +84,13 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG database/provisioning
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Update Pull Request
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         env:
-          PLAN: "${{ steps.build-image.outputs.stdout }}"
+          OUTPUT: "${{ steps.build-image.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -94,7 +100,7 @@ jobs:
             <details><summary>Show Build Output</summary>
 
             \`\`\`\n
-            ${process.env.PLAN}
+            ${process.env.OUTPUT}
             \`\`\`
 
             </details>
