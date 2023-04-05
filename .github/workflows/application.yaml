@@ -46,16 +46,16 @@ jobs:
       application-name: ${{ inputs.application-name }}
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
-      force-build: ${{ inputs.force-build || inputs.force-build == 'true'}}
+      force-build: ${{ inputs.force-build }}
   deploy:
     name: Deploy Application
     uses: ./.github/workflows/application_deploy.yaml
     needs: build
-    if: github.event_name == 'push' || inputs.force-deploy == 'true'
+    if: github.event_name == 'push' || inputs.force-deploy
     with:
       working-directory: applications/${{ inputs.application-name }}
       application-name: ${{ inputs.application-name }}
       image: ${{ needs.build.outputs.image }}
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
-      force-deploy: ${{ inputs.force-deploy == 'true' }}
+      force-deploy: ${{ inputs.force-deploy }}
