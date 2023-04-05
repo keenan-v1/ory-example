@@ -24,5 +24,5 @@ jobs:
     uses: "./.github/workflows/application.yaml"
     with:
       application-name: kratos
-      force-build: ${{ github.event.inputs.force-build }}
-      force-deploy: ${{ github.event.inputs.force-deploy }}
+      force-build: ${{ github.event.inputs.force-build == 'true' }}
+      force-deploy: ${{ github.event.inputs.force-deploy == 'true' }}
