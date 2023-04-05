@@ -211,8 +211,8 @@ resource "aws_security_group_rule" "alb" {
   security_group_id        = local.cluster_info.autoscaling_security_group_id
   type                     = "ingress"
   protocol                 = "TCP"
-  from_port                = -1
-  to_port                  = -1
+  from_port                = 1
+  to_port                  = 65535
   source_security_group_id = module.alb.security_group_id
 }
 
