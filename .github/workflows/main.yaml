@@ -28,8 +28,8 @@ jobs:
     name: Run Infrastructure
     uses: "./.github/workflows/infra_main.yaml"
     with:
-      force-apply: true
-      force-run: true
+      force-apply: "true"
+      force-run: "true"
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
@@ -38,5 +38,5 @@ jobs:
     needs: run-infra
     uses: "./.github/workflows/application_main.yaml"
     with:
-      force-build: true
-      force-deploy: true
+      force-build: "true"
+      force-deploy: "true"
