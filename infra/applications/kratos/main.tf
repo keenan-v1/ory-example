@@ -176,6 +176,18 @@ module "alb" {
   ]
 }
 
+resource "aws_route53_record" "lb" {
+  zone_id = data.aws_route53_zone.domain.zone_id
+  name    = local.lb_domain
+  type    = "A"
+
+  alias {
+    name                   = module.alb.lb_dns_name
+    zone_id                = module.alb.lb_zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_autoscaling_attachment" "asg_to_alb" {
   count                  = length(module.alb.target_group_arns)
   autoscaling_group_name = local.cluster_info.autoscaling_group_id

@@ -100,6 +100,8 @@ resource "aws_db_instance" "database" {
   vpc_security_group_ids = [
     aws_security_group.database.id,
   ]
+  # NOTE FOR PRODUCTION: You will likely want to control this manually or have it reboot during maintenance windows.
+  apply_immediately = true
 }
 
 resource "aws_secretsmanager_secret" "database_password" {
