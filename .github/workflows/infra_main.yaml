@@ -12,6 +12,11 @@ on:
         description: "Force apply"
         required: false
         default: "false"
+      force-run:
+        type: string
+        description: "Force run"
+        required: false
+        default: "false"
   workflow_dispatch:
     inputs:
       force-apply:
