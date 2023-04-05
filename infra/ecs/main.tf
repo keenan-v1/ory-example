@@ -64,25 +64,6 @@ resource "aws_iam_policy" "read_ssm_secretsmanager" {
   policy      = data.aws_iam_policy_document.read_ssm_secretsmanager.json
 }
 
-data "aws_iam_policy_document" "ecr" {
-  statement {
-    actions = [
-      "ecr:BatchGetImage",
-      "ecr:GetDownloadUrlForLayer",
-      "ecr:GetAuthorizationToken"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-resource "aws_iam_policy" "ecr" {
-  name        = "${local.name}-ecr"
-  description = "Allows read access to the ECR"
-  policy      = data.aws_iam_policy_document.ecr.json
-}
-
 module "autoscaling" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "~> 6.5"
@@ -103,7 +84,6 @@ module "autoscaling" {
     AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
     AmazonSSMManagedInstanceCore        = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
     ReadSSMSecretsManager               = aws_iam_policy.read_ssm_secretsmanager.arn
-    ECR                                 = aws_iam_policy.ecr.arn
   }
 
   vpc_zone_identifier = local.network_info.public_subnet_ids

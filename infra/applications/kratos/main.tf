@@ -286,6 +286,25 @@ resource "aws_iam_role_policy" "ecs_task_cloudwatch_logging_policy" {
   policy = data.aws_iam_policy_document.ecs_task_cloudwatch_logging_policy.json
 }
 
+data "aws_iam_policy_document" "ecr" {
+  statement {
+    actions = [
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:GetAuthorizationToken"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_ecr" {
+  name   = "${var.project_name}-${var.environment}-${var.service_name}-ecs-task-ecr"
+  role   = aws_iam_role.ecs_execution_role.id
+  policy = data.aws_iam_policy_document.ecr.json
+}
+
 resource "aws_ecs_task_definition" "service" {
   family             = var.service_name
   execution_role_arn = aws_iam_role.ecs_execution_role.arn
