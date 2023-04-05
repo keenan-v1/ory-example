@@ -35,6 +35,7 @@
         name: "kratos"
         password: "{{ lookup('amazon.aws.aws_secret', kratos_secret_path, region=aws_region) }}"
         priv: "kratos.*:ALL"
+        host_all: true
         state: present
         login_host: "{{ hostvars[inventory_hostname]['endpoint']['address'] }}"
         login_port: "{{ hostvars[inventory_hostname]['endpoint']['port'] }}"

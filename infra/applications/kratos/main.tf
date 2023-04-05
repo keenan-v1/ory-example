@@ -204,7 +204,7 @@ resource "random_password" "application_secrets" {
 
 locals {
   application_secrets = {
-    dsn                 = "mysql://${var.db_user}:${data.aws_secretsmanager_secret_version.db_user_password.secret_string}@${local.database_info.host}:${local.database_info.port}/${var.db_name}?parseTime=true"
+    dsn                 = "mysql://${var.db_user}:${data.aws_secretsmanager_secret_version.db_user_password.secret_string}@${local.database_info.host}:${local.database_info.port}/${var.db_name}"
     secrets_cookie      = random_password.application_secrets[0].result
     secrets_cipher      = random_password.application_secrets[1].result
     secrets_default     = random_password.application_secrets[2].result
@@ -423,9 +423,14 @@ locals {
   }
 }
 
-resource "aws_ssm_parameter" "application_into" {
+resource "aws_ssm_parameter" "application_info" {
   name        = "/${var.organization}/${var.project_name}/${var.environment}/application/${var.service_name}/info"
   description = "Application info"
   type        = "String"
   value       = jsonencode(local.application_info)
+}
+
+moved {
+  from = aws_ssm_parameter.application_into
+  to   = aws_ssm_parameter.application_info
 }

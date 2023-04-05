@@ -90,21 +90,11 @@ jobs:
       - name: Update Pull Request
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
-        env:
-          OUTPUT: "${{ steps.build-image.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const output = `#### Working Path 📁: \`${{ inputs.working-directory }}\`
             #### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`
-
-            <details><summary>Show Build Output</summary>
-
-            \`\`\`\n
-            ${process.env.OUTPUT}
-            \`\`\`
-
-            </details>
 
             *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
 
