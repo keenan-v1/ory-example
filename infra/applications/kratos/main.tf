@@ -207,6 +207,15 @@ data "aws_secretsmanager_secret_version" "db_user_password" {
   secret_id = data.aws_secretsmanager_secret.db_user_password.id
 }
 
+resource "aws_security_group_rule" "alb" {
+  security_group_id        = local.cluster_info.autoscaling_security_group_id
+  type                     = "ingress"
+  protocol                 = "TCP"
+  from_port                = -1
+  to_port                  = -1
+  source_security_group_id = module.alb.security_group_id
+}
+
 resource "random_password" "application_secrets" {
   count            = 3
   length           = 32
