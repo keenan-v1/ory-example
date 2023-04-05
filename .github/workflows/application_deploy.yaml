@@ -2,10 +2,6 @@ name: Deploy Application
 on:
   workflow_call:
     inputs:
-      deploy-environment:
-        type: string
-        description: "Deploy environment"
-        required: true
       working-directory:
         type: string
         description: "Working directory"
@@ -38,7 +34,7 @@ permissions:
   pull-requests: write
 
 env:
-  SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ inputs.deploy-environment }}"
+  SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT }}"
 
 jobs:
   check-run:
