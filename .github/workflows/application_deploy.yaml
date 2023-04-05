@@ -22,10 +22,6 @@ on:
         type: boolean
         description: "Force deploy"
         required: true
-    secrets:
-      image:
-        description: "The image to deploy"
-        required: true
 permissions:
   id-token: write
   contents: read
@@ -71,6 +67,8 @@ jobs:
         run: |
           aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/application/${{ inputs.application-name }}/info" --query "Parameter.Value" --output text > info.json
           echo "application_info=$(cat info.json)" >> $GITHUB_OUTPUT
+          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/ecr/info" --query "Parameter.Value" --output text > info.json
+          echo "repository_url=$(cat info.json | jq '.${{ inputs.application-name }}')" >> $GITHUB_OUTPUT
 
       - name: Fetch Application Info & Task Definition
         id: download-task-definition
@@ -83,7 +81,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: ${{ fromJson(steps.application-info.outputs.application_info).container_name }}
-          image: ${{ secrets.image }}
+          image: "${{ steps.application-info.outputs.repository_url }}:${{ github.sha }}"
 
       - name: Deploy Amazon ECS task definition
         id: deploy
