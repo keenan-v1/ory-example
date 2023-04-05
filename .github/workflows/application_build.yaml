@@ -35,7 +35,6 @@ permissions:
 jobs:
   check-run:
     name: Check Run
-    if: (inputs.force-build == false)
     runs-on: ubuntu-latest
     outputs:
       run-tasks: ${{ contains(steps.filter-paths.outputs.changes, 'changed') || inputs.force-build }}

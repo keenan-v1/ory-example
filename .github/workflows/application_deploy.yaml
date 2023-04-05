@@ -38,7 +38,6 @@ env:
 jobs:
   check-run:
     name: Check Run
-    if: (inputs.force-deploy == false)
     runs-on: ubuntu-latest
     outputs:
       run-tasks: ${{ contains(steps.filter-paths.outputs.changes, 'changed') }}
@@ -53,12 +52,14 @@ jobs:
           filters: |
             changed:
               - '${{ inputs.working-directory }}/**'
+      - name: Set Environment
+        run: echo "run_tasks=${{ contains(steps.filter-paths.outputs.changes, 'changed') }}" >> $GITHUB_ENV
 
   deploy-to-ecs:
     name: Deploy to ECS
     runs-on: ubuntu-latest
     needs: check-run
-    if: (needs.check-run.outputs.run-tasks == 'true' || inputs.force-deploy)
+    if: (needs.check-run.outputs.run-tasks == 'true' || inputs.force-deploy == true)
     steps:
       - name: Setup AWS Role
         uses: aws-actions/configure-aws-credentials@v2
