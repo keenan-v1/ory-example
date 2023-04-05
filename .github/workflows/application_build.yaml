@@ -83,7 +83,7 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ${{ inputs.working-directory }}
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Update Pull Request
         uses: actions/github-script@v6
@@ -94,6 +94,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const output = `#### Working Path 📁: \`${{ inputs.working-directory }}\`
+            #### Docker Image 🖼️: \`${{ steps.build-image.outputs.image }}\`
             #### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`
 
             <details><summary>Show Build Output</summary>
