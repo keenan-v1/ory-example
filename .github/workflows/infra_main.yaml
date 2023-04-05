@@ -11,17 +11,17 @@ on:
         type: boolean
         description: "Force apply"
         required: true
-      force-run:
+      force-plan:
         type: boolean
-        description: "Force run"
+        description: "Force plan"
         required: true
   workflow_dispatch:
     inputs:
       force-apply:
         description: "Force apply"
         required: true
-      force-run:
-        description: "Force run"
+      force-plan:
+        description: "Force plan"
         required: true
 
 permissions:
@@ -39,7 +39,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply }}
-      force-run: ${{ inputs.force-run }}
+      force-plan: ${{ inputs.force-plan }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   ecr:
@@ -51,7 +51,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply }}
-      force-run: ${{ inputs.force-run }}
+      force-plan: ${{ inputs.force-plan }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   database:
@@ -65,7 +65,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply }}
-      force-run: ${{ inputs.force-run }}
+      force-plan: ${{ inputs.force-plan }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   ecs:
@@ -79,7 +79,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply }}
-      force-run: ${{ inputs.force-run }}
+      force-plan: ${{ inputs.force-plan }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   kratos:
@@ -95,6 +95,6 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply }}
-      force-run: ${{ inputs.force-run }}
+      force-plan: ${{ inputs.force-plan }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}

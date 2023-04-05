@@ -22,9 +22,9 @@ on:
         type: boolean
         description: "Force apply"
         required: true
-      force-run:
+      force-plan:
         type: boolean
-        description: "Force run"
+        description: "Force plan"
         required: true
     secrets:
       TERRAFORM_CLOUD_TOKEN:
@@ -62,7 +62,7 @@ jobs:
     name: Execute Terraform
     runs-on: ubuntu-latest
     needs: check-run
-    if: needs.check-run.outputs.run-terraform == 'true' || inputs.force-apply
+    if: needs.check-run.outputs.run-terraform == 'true' || inputs.force-apply || inputs.force-plan
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -97,7 +97,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        if: github.event_name == 'pull_request' || inputs.force-apply
+        if: github.event_name == 'pull_request' || inputs.force-plan || inputs.force-apply
         working-directory: ${{ inputs.working-directory }}
         run: terraform plan -no-color -input=false
         continue-on-error: true
@@ -139,6 +139,6 @@ jobs:
 
       - name: Terraform Apply
         id: apply
-        if: inputs.force-apply || inputs.force-run
+        if: inputs.force-apply
         working-directory: ${{ inputs.working-directory }}
         run: terraform apply -auto-approve -no-color
