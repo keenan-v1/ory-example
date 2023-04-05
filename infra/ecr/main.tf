@@ -18,6 +18,7 @@ resource "aws_ecr_repository" "repositories" {
   force_delete         = true
 }
 
+# Push to SSM for other applications 
 resource "aws_ssm_parameter" "repository_info" {
   name  = "/${var.organization}/${var.project_name}/${var.environment}/ecr/info"
   type  = "String"
