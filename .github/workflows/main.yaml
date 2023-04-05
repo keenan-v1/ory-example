@@ -26,7 +26,7 @@ jobs:
     name: Run Infrastructure
     uses: "./.github/workflows/infra_main.yaml"
     with:
-      force-apply: "${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}"
+      force-apply: "${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_name == 'main') }}"
     secrets:
       terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
@@ -35,5 +35,5 @@ jobs:
     needs: run-infra
     uses: "./.github/workflows/application_main.yaml"
     with:
-      force-build: "${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}"
-      force-deploy: "${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}"
+      force-build: "${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_name == 'main') }}"
+      force-deploy: "${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_name == 'main') }}"
