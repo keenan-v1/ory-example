@@ -5,3 +5,4 @@ tf.plan
 *.tfvars
 *.tfstate
 *.tfbackend
+*.env

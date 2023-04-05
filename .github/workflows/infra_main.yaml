@@ -8,25 +8,21 @@ on:
         required: true
     inputs:
       force-apply:
-        type: string
+        type: boolean
         description: "Force apply"
-        required: false
-        default: "false"
+        required: true
       force-run:
-        type: string
+        type: boolean
         description: "Force run"
-        required: false
-        default: "false"
+        required: true
   workflow_dispatch:
     inputs:
       force-apply:
         description: "Force apply"
-        required: false
-        default: "false"
+        required: true
       force-run:
         description: "Force run"
-        required: false
-        default: "false"
+        required: true
 
 permissions:
   id-token: write
