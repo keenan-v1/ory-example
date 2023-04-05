@@ -63,21 +63,29 @@ jobs:
           role-duration-seconds: 3600
           role-session-name: ${{ github.event.repository.name }}
 
+      - name: Set up QEMU dependency
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build and push image to Amazon ECR
+        uses: docker/build-push-action@v2
         id: build-image
-        continue-on-error: true
+        with:
+          context: ${{ env.context }}
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          platforms: linux/arm64
+          push: true
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: "${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/${{ inputs.application-name }}"
           IMAGE_TAG: ${{ github.sha }}
-        # NOTE: The `--platform` flag is required for ARM64 builds, this should be templated out in the future
-        run: |
-          docker build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ${{ inputs.working-directory }}
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          context: ${{ inputs.working-directory }}
 
       - name: Update Pull Request
         uses: actions/github-script@v6
