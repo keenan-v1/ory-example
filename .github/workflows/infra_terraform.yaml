@@ -61,7 +61,7 @@ jobs:
     name: Execute Terraform
     runs-on: ubuntu-latest
     needs: check-run
-    if: needs.check-run.outputs.run-terraform == 'true' || inputs.force-apply || inputs.force-plan
+    if: (needs.check-run.outputs.run-terraform == 'true' || inputs.force-apply || inputs.force-plan)
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -96,7 +96,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        if: github.event_name == 'pull_request' || inputs.force-plan || inputs.force-apply
+        if: (github.event_name == 'pull_request' || inputs.force-plan || inputs.force-apply)
         working-directory: ${{ inputs.working-directory }}
         run: terraform plan -no-color -input=false
         continue-on-error: true
@@ -138,6 +138,6 @@ jobs:
 
       - name: Terraform Apply
         id: apply
-        if: inputs.force-apply
+        if: (inputs.force-apply)
         working-directory: ${{ inputs.working-directory }}
         run: terraform apply -auto-approve -no-color
