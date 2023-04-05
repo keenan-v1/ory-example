@@ -28,7 +28,7 @@ jobs:
     with:
       force-apply: "${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_name == 'main') }}"
     secrets:
-      terraform-cloud-token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
   run-applications:
     name: Run Applications

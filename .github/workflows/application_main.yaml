@@ -4,10 +4,10 @@ on:
   workflow_call:
     inputs:
       force-build:
-        type: boolean
+        type: string
         description: "Force build"
         required: false
-        default: false
+        default: "false"
       force-deploy:
         type: string
         description: "Force deploy"
