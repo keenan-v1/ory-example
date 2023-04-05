@@ -22,18 +22,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  debug:
-    name: Debug
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Debug"
-        run: |
-          if [ "${{ secrets.TERRAFORM_CLOUD_TOKEN }}" ]; then
-            echo "Terraform Cloud token is set"
-          else
-            echo "Terraform Cloud token is not set"
-          fi
-          exit 1
   run-infra:
     name: Run Infrastructure
     uses: "./.github/workflows/infra_main.yaml"
