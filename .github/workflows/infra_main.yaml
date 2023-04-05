@@ -8,10 +8,10 @@ on:
         required: true
     inputs:
       force-apply:
-        type: boolean
+        type: string
         description: "Force apply"
         required: false
-        default: false
+        default: "false"
   workflow_dispatch:
     inputs:
       force-apply:

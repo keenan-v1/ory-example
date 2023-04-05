@@ -9,10 +9,10 @@ on:
         required: false
         default: false
       force-deploy:
-        type: boolean
+        type: string
         description: "Force deploy"
         required: false
-        default: false
+        default: "false"
   workflow_dispatch:
     inputs:
       force-build:

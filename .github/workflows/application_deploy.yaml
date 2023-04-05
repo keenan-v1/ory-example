@@ -23,10 +23,10 @@ on:
         description: "AWS Region"
         required: true
       force-deploy:
-        type: boolean
+        type: string
         description: "Force deploy"
         required: false
-        default: false
+        default: "false"
 
 permissions:
   id-token: write

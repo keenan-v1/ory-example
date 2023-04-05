@@ -19,10 +19,10 @@ on:
         description: "AWS Region"
         required: true
       force-build:
-        type: boolean
+        type: string
         description: "Force build"
         required: false
-        default: false
+        default: "false"
     outputs:
       image:
         description: "The newly built image"
