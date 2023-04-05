@@ -68,12 +68,18 @@ jobs:
           aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/application/${{ inputs.application-name }}/info" --query "Parameter.Value" --output text > info.json
           echo "application_info=$(cat info.json)" >> $GITHUB_OUTPUT
           aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/ecr/info" --query "Parameter.Value" --output text > info.json
-          echo "repository_url=$(cat info.json | jq '.${{ inputs.application-name }}')" >> $GITHUB_OUTPUT
+          echo "repository_url=$(cat info.json | jq -r '.${{ inputs.application-name }}')" >> $GITHUB_OUTPUT
 
-      - name: Fetch Application Info & Task Definition
+      - name: Fetch Task Definition
         id: download-task-definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ fromJson(steps.application-info.outputs.application_info).task_definition_arn }} > task-definition.json
+
+      - name: Upload old task definition (DEBUG)
+        uses: actions/upload-artifact@v2
+        with:
+          name: task-definition
+          path: task-definition.json
 
       - name: Update Task Definition
         id: update-task-definition
