@@ -46,7 +46,7 @@ jobs:
       application-name: ${{ inputs.application-name }}
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
-      force-build: ${{ inputs.force-build }}
+      force-build: ${{ inputs.force-build == 'true' }}
   deploy:
     name: Deploy Application
     uses: ./.github/workflows/application_deploy.yaml
@@ -57,4 +57,4 @@ jobs:
       application-name: ${{ inputs.application-name }}
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
-      force-deploy: ${{ inputs.force-deploy }}
+      force-deploy: ${{ inputs.force-deploy == 'true' }}
