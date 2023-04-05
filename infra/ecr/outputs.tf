@@ -1,3 +1,3 @@
 output "repository_uris" {
-  value = aws_ecr_repository.repositories.*.repository_url
+  value = [for repo in aws_ecr_repository.repositories : repo.repository_url]
 }
