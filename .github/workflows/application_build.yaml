@@ -78,10 +78,10 @@ jobs:
         continue-on-error: true
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ inputs.application-name }}
+          ECR_REPOSITORY: "${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/${{ inputs.application-name }}"
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG database/provisioning
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ${{ inputs.working-directory }}
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
