@@ -2,6 +2,23 @@ name: Main workflow
 
 on:
   workflow_dispatch:
+    inputs:
+      force-apply:
+        description: "Force apply terraform"
+        required: false
+        default: "false"
+      force-plan:
+        description: "Force plan terraform"
+        required: false
+        default: "false"
+      force-build:
+        description: "Force build docker image"
+        required: false
+        default: "false"
+      force-deploy:
+        description: "Force deploy docker image"
+        required: false
+        default: "false"
 
   push:
     branches:
@@ -28,8 +45,8 @@ jobs:
     name: Run Infrastructure
     uses: "./.github/workflows/infra_main.yaml"
     with:
-      force-apply: ${{ (github.event_name == 'workflow_dispatch') }}
-      force-plan: ${{ (github.event_name == 'workflow_dispatch') }}
+      force-apply: ${{ (inputs.force-apply == 'true') }}
+      force-plan: ${{ (inputs.force-plan == 'true') }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
@@ -38,5 +55,5 @@ jobs:
     needs: run-infra
     uses: "./.github/workflows/application_main.yaml"
     with:
-      force-build: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_name == 'main')) }}
-      force-deploy: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_name == 'main')) }}
+      force-build: ${{ (inputs.force-build == 'true') }}
+      force-deploy: ${{ (inputs.force-deploy == 'true') }}

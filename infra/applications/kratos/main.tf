@@ -204,7 +204,7 @@ resource "random_password" "application_secrets" {
 
 locals {
   application_secrets = {
-    dsn                 = "mysql://${var.db_user}:${data.aws_secretsmanager_secret_version.db_user_password.secret_string}@${local.database_info.host}:${local.database_info.port}/${var.db_name}"
+    dsn                 = "mysql://${var.db_user}:${data.aws_secretsmanager_secret_version.db_user_password.secret_string}@tcp(${local.database_info.host}:${local.database_info.port})/${var.db_name}?parseTime=true&multi"
     secrets_cookie      = random_password.application_secrets[0].result
     secrets_cipher      = random_password.application_secrets[1].result
     secrets_default     = random_password.application_secrets[2].result
@@ -393,6 +393,12 @@ resource "aws_ecs_service" "service" {
   ordered_placement_strategy {
     type  = "spread"
     field = "instanceId"
+  }
+
+  capacity_provider_strategy {
+    capacity_provider = "one"
+    weight            = 100
+    base              = 20
   }
 
   load_balancer {

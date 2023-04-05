@@ -145,11 +145,13 @@ module "ecs" {
 
 locals {
   cluster_info = {
-    cluster_name                  = module.ecs.cluster_name
-    cluster_arn                   = module.ecs.cluster_arn
-    autoscaling_group_id          = module.autoscaling.autoscaling_group_id
-    autoscaling_group_arn         = module.autoscaling.autoscaling_group_arn
-    autoscaling_security_group_id = module.autoscaling_sg.security_group_id
+    cluster_name                   = module.ecs.cluster_name
+    cluster_arn                    = module.ecs.cluster_arn
+    cluster_capacity_providers     = module.ecs.cluster_capacity_providers
+    autoscaling_capacity_providers = module.ecs.autoscaling_capacity_providers
+    autoscaling_group_id           = module.autoscaling.autoscaling_group_id
+    autoscaling_group_arn          = module.autoscaling.autoscaling_group_arn
+    autoscaling_security_group_id  = module.autoscaling_sg.security_group_id
   }
 }
 
