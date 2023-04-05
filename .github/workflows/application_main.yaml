@@ -4,25 +4,21 @@ on:
   workflow_call:
     inputs:
       force-build:
-        type: string
+        type: boolean
         description: "Force build"
-        required: false
-        default: "false"
+        required: true
       force-deploy:
-        type: string
+        type: boolean
         description: "Force deploy"
-        required: false
-        default: "false"
+        required: true
   workflow_dispatch:
     inputs:
       force-build:
         description: "Force build"
-        required: false
-        default: "false"
+        required: true
       force-deploy:
         description: "Force deploy"
-        required: false
-        default: "false"
+        required: true
 
 permissions:
   id-token: write
@@ -35,5 +31,5 @@ jobs:
     uses: "./.github/workflows/application.yaml"
     with:
       application-name: kratos
-      force-build: ${{ github.event.inputs.force-build == 'true' }}
-      force-deploy: ${{ github.event.inputs.force-deploy == 'true' }}
+      force-build: ${{ inputs.force-build }}
+      force-deploy: ${{ inputs.force-deploy }}
