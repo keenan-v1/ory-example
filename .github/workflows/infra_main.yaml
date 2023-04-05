@@ -38,8 +38,8 @@ jobs:
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
-      force-apply: "${{ github.event.inputs.force-apply == 'true' }}"
-      force-run: "${{ github.event.inputs.force-run == 'true' }}"
+      force-apply: ${{ github.event.inputs.force-apply }}
+      force-run: ${{ github.event.inputs.force-run }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   ecr:
@@ -50,8 +50,8 @@ jobs:
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
-      force-apply: "${{ github.event.inputs.force-apply == 'true' }}"
-      force-run: "${{ github.event.inputs.force-run == 'true' }}"
+      force-apply: ${{ github.event.inputs.force-apply }}
+      force-run: ${{ github.event.inputs.force-run }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   database:
@@ -64,8 +64,8 @@ jobs:
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
-      force-apply: ${{ github.event.inputs.force-apply == 'true' }}
-      force-run: ${{ github.event.inputs.force-run == 'true' }}
+      force-apply: ${{ github.event.inputs.force-apply }}
+      force-run: ${{ github.event.inputs.force-run }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   ecs:
@@ -78,8 +78,8 @@ jobs:
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
-      force-apply: ${{ github.event.inputs.force-apply == 'true' }}
-      force-run: ${{ github.event.inputs.force-run == 'true' }}
+      force-apply: ${{ github.event.inputs.force-apply }}
+      force-run: ${{ github.event.inputs.force-run }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   kratos:
@@ -94,7 +94,7 @@ jobs:
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
       terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
-      force-apply: ${{ github.event.inputs.force-apply == 'true' }}
-      force-run: ${{ github.event.inputs.force-run == 'true' }}
+      force-apply: ${{ github.event.inputs.force-apply }}
+      force-run: ${{ github.event.inputs.force-run }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
