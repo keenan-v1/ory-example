@@ -51,6 +51,37 @@ resource "aws_security_group" "database" {
   }
 }
 
+resource "aws_db_parameter_group" "default" {
+  name_prefix = "${var.project_name}-${var.environment}-pg-"
+  family      = "mysql8.0"
+
+  parameter {
+    name  = "character_set_server"
+    value = "utf8"
+  }
+
+  parameter {
+    name  = "character_set_client"
+    value = "utf8"
+  }
+
+  parameter {
+    name  = "sql_mode"
+    value = "TRADITIONAL"
+  }
+
+  # TODO: Remove this parameter when you are ready to enable foreign key checks.
+  # Should find a better way of handling this.
+  parameter {
+    name  = "foreign_key_checks"
+    value = "0"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_db_instance" "database" {
   identifier_prefix     = "${var.project_name}-${var.environment}-"
   engine                = "mysql"
@@ -63,6 +94,7 @@ resource "aws_db_instance" "database" {
   storage_encrypted     = true
   allocated_storage     = 5
   max_allocated_storage = 10
+  parameter_group_name  = aws_db_parameter_group.default.name
   skip_final_snapshot   = true # Don't create a snapshot when destroying the database, you may want to change this in production.
   db_subnet_group_name  = local.network_info.database_subnet_group_name
   vpc_security_group_ids = [
