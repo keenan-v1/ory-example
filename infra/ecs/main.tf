@@ -72,7 +72,7 @@ data "aws_iam_policy_document" "ecr" {
       "ecr:GetAuthorizationToken"
     ]
     resources = [
-      "arn:aws:ecr:${var.region}:${data.aws_caller_identity.current.account_id}:repository/${var.organization}/${var.project_name}/${var.environment}/*"
+      "*"
     ]
   }
 }
