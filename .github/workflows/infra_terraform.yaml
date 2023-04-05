@@ -42,7 +42,7 @@ env:
 jobs:
   check-run:
     name: Check Run
-    if: !inputs.force-apply
+    if: (!inputs.force-apply || !inputs.force-run)
     runs-on: ubuntu-latest
     outputs:
       run-terraform: ${{ contains(steps.filter-paths.outputs.changes, 'changed') || inputs.force-run }}
