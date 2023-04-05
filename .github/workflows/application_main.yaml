@@ -11,14 +11,6 @@ on:
         type: boolean
         description: "Force deploy"
         required: true
-  workflow_dispatch:
-    inputs:
-      force-build:
-        description: "Force build"
-        required: true
-      force-deploy:
-        description: "Force deploy"
-        required: true
 
 permissions:
   id-token: write
