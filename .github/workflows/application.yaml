@@ -55,7 +55,8 @@ jobs:
     with:
       working-directory: applications/${{ inputs.application-name }}
       application-name: ${{ inputs.application-name }}
-      image: ${{ needs.build.outputs.image }}
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
       force-deploy: ${{ inputs.force-deploy }}
+    secrets:
+      image: ${{ needs.build.outputs.image }}

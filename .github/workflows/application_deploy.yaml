@@ -10,10 +10,6 @@ on:
         type: string
         description: "Application name"
         required: true
-      image:
-        type: string
-        description: "The image to deploy"
-        required: true
       aws-role:
         type: string
         description: "AWS Role"
@@ -26,7 +22,10 @@ on:
         type: boolean
         description: "Force deploy"
         required: true
-
+    secrets:
+      image:
+        description: "The image to deploy"
+        required: true
 permissions:
   id-token: write
   contents: read
@@ -52,8 +51,6 @@ jobs:
           filters: |
             changed:
               - '${{ inputs.working-directory }}/**'
-      - name: Set Environment
-        run: echo "run_tasks=${{ contains(steps.filter-paths.outputs.changes, 'changed') }}" >> $GITHUB_ENV
 
   deploy-to-ecs:
     name: Deploy to ECS
@@ -86,7 +83,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: ${{ fromJson(steps.application-info.outputs.application_info).container_name }}
-          image: ${{ inputs.image }}
+          image: ${{ secrets.image }}
 
       - name: Deploy Amazon ECS task definition
         id: deploy
@@ -101,6 +98,6 @@ jobs:
         if: always()
         run: |
           echo "Working Path 📁: ${{ inputs.working-directory }}" >> $GITHUB_STEP_SUMMARY
-          echo "Image 🖼: ${{ inputs.image }}" >> $GITHUB_STEP_SUMMARY
+          echo "Image 🖼: ${{ secrets.image }}" >> $GITHUB_STEP_SUMMARY
           echo "Task Defintion Update 🖌: ${{ steps.update-task-definition.outcome }}" >> $GITHUB_STEP_SUMMARY
           echo "Deploy Status 🚀: ${{ steps.deploy.outcome }}" >> $GITHUB_STEP_SUMMARY
