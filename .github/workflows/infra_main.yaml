@@ -6,6 +6,12 @@ on:
       terraform-cloud-token:
         description: "Terraform Cloud Token"
         required: true
+    inputs:
+      force-apply:
+        type: boolean
+        description: "Force apply"
+        required: false
+        default: false
   workflow_dispatch:
     inputs:
       force-apply:
