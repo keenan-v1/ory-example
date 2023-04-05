@@ -73,13 +73,7 @@ jobs:
       - name: Fetch Task Definition
         id: download-task-definition
         run: |
-          aws ecs describe-task-definition --task-definition ${{ fromJson(steps.application-info.outputs.application_info).task_definition_arn }} > task-definition.json
-
-      - name: Upload old task definition (DEBUG)
-        uses: actions/upload-artifact@v2
-        with:
-          name: task-definition
-          path: task-definition.json
+          aws ecs describe-task-definition --task-definition ${{ fromJson(steps.application-info.outputs.application_info).task_definition_arn }} --query 'taskDefinition' > task-definition.json
 
       - name: Update Task Definition
         id: update-task-definition
