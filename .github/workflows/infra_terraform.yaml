@@ -138,6 +138,6 @@ jobs:
 
       - name: Terraform Apply
         id: apply
-        if: (inputs.force-apply)
+        if: ((needs.check-run.outputs.run-terraform == 'true' || inputs.force-apply) && success())
         working-directory: ${{ inputs.working-directory }}
         run: terraform apply -auto-approve -no-color
