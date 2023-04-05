@@ -31,6 +31,7 @@ resource "aws_security_group" "database" {
     protocol    = "TCP"
     cidr_blocks = concat(
       local.network_info.private_subnets_cidr_blocks,
+      local.network_info.public_subnets_cidr_blocks,
       local.network_info.database_subnets_cidr_blocks,
       local.cidr_allow_list,
     )
