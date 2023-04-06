@@ -2,10 +2,6 @@ name: Infrastructure
 
 on:
   workflow_call:
-    secrets:
-      TERRAFORM_CLOUD_TOKEN:
-        description: "Terraform Cloud Token"
-        required: true
     inputs:
       force-apply:
         type: boolean
@@ -39,25 +35,15 @@ jobs:
     uses: ./.github/workflows/infra_terraform.yaml
     with:
       working-directory: infra/network
-      aws-role: ${{ vars.AWS_ROLE }}
-      aws-region: ${{ vars.AWS_REGION }}
-      terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
-    secrets:
-      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   ecr:
     name: ECR
     uses: ./.github/workflows/infra_terraform.yaml
     with:
       working-directory: infra/ecr
-      aws-role: ${{ vars.AWS_ROLE }}
-      aws-region: ${{ vars.AWS_REGION }}
-      terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
-    secrets:
-      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   database:
     name: Database
     uses: ./.github/workflows/infra_terraform.yaml
@@ -65,13 +51,8 @@ jobs:
       - network
     with:
       working-directory: infra/database
-      aws-role: ${{ vars.AWS_ROLE }}
-      aws-region: ${{ vars.AWS_REGION }}
-      terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
-    secrets:
-      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   ecs:
     name: ECS
     uses: ./.github/workflows/infra_terraform.yaml
@@ -79,13 +60,8 @@ jobs:
       - network
     with:
       working-directory: infra/ecs
-      aws-role: ${{ vars.AWS_ROLE }}
-      aws-region: ${{ vars.AWS_REGION }}
-      terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
-    secrets:
-      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
   kratos:
     name: "Application: Kratos"
     uses: ./.github/workflows/infra_terraform.yaml
@@ -95,10 +71,5 @@ jobs:
       - database
     with:
       working-directory: infra/applications/kratos
-      aws-role: ${{ vars.AWS_ROLE }}
-      aws-region: ${{ vars.AWS_REGION }}
-      terraform-cloud-organization: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
-    secrets:
-      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}

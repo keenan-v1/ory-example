@@ -33,7 +33,7 @@ permissions:
 jobs:
   kratos:
     name: Kratos
-    uses: "./.github/workflows/application.yaml"
+    uses: "./.github/workflows/application_run.yaml"
     with:
       application-name: kratos
       force-build: ${{ inputs.force-build == 'true' }}

@@ -45,8 +45,6 @@ jobs:
     name: Provisioner
     uses: "./.github/workflows/database_provisioner.yaml"
     with:
-      aws-role: ${{ vars.AWS_ROLE }}
-      aws-region: ${{ vars.AWS_REGION }}
       force-build: ${{ inputs.force-build == 'true' }}
       force-run: ${{ inputs.force-run == 'true' }}
       image-tag: ${{ inputs.image-tag }}

@@ -1,0 +1,192 @@
+name: Application
+
+on:
+  workflow_call:
+    inputs:
+      force-build:
+        type: boolean
+        description: "Force Build"
+        required: false
+        default: false
+      force-deploy:
+        type: boolean
+        description: "Force Deploy"
+        required: false
+        default: false
+      application-name:
+        type: string
+        description: "Application Name"
+        required: true
+      commit-id:
+        type: string
+        description: "Commit ID to deploy"
+        required: false
+        default: "latest"
+
+  workflow_dispatch:
+    inputs:
+      force-build:
+        type: boolean
+        description: "Force Build"
+        required: false
+        default: false
+      force-deploy:
+        type: boolean
+        description: "Force Deploy"
+        required: false
+        default: false
+      application-name:
+        type: string
+        description: "Application Name"
+        required: true
+      image-tag:
+        type: string
+        description: "Image Tag to deploy"
+        required: false
+        default: "latest"
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  working-directory: "applications/${{ inputs.application-name }}"
+  SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}"
+  should-build: ${{ (inputs.force-build || inputs.image-tag == 'latest') }}
+  should-deploy: ${{ (inputs.force-deploy || inputs.image-tag == 'latest') && github.event_name != 'pull_request' }}
+  IMAGE_TAG: ${{ inputs.image-tag }}
+  AWS_ROLE: ${{ vars.AWS_ROLE }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check Run
+        uses: dorny/paths-filter@v2
+        if: (env.should-build != 'true' && env.should-deploy != 'true')
+        id: check-run
+        with:
+          filters: |
+            changed:
+              - '${{ env.working-directory }}/**'
+
+      - name: Should we build?
+        if: (steps.check-run.outcome == 'success')
+        run: |
+          echo "should-build=${{ contains(steps.check-run.outputs.changes, 'changed') }}" >> $GITHUB_ENV
+          echo "should-run=${{ contains(steps.check-run.outputs.changes, 'changed') }}" >> $GITHUB_ENV
+
+      - name: Setup AWS Role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: ${{ github.event.repository.name }}
+
+      - name: Set Image Tag
+        if: (env.should-build == 'true')
+        run: |
+          echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Set up QEMU dependency
+        if: (env.should-build == 'true')
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        if: (env.should-build == 'true')
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push image to Amazon ECR
+        if: (env.should-build == 'true')
+        uses: docker/build-push-action@v2
+        id: build-image
+        with:
+          context: ${{ env.context }}
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          platforms: linux/arm64
+          push: true
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: "${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/${{ inputs.application-name }}"
+          IMAGE_TAG: ${{ github.sha }} # We don't use IMAGE_TAG here so we don't accidentally overwrite an existing image
+          context: ${{ env.working-directory }}
+
+      - name: Update Pull Request
+        uses: actions/github-script@v6
+        if: (github.event_name == 'pull_request' && always())
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Working Path 📁: \`${{ env.working-directory }}\`
+            #### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Update Summary
+        if: (env.should-build == 'true' && always())
+        run: |
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo "#### Application Build for ${{ inputs.application-name }} ####" >> $GITHUB_STEP_SUMMARY
+          echo "**Working Path** 📁 \`${{ env.working-directory }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Docker Build** ⚙️ \`${{ steps.build-image.outcome }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fetch Application Info
+        if: (env.should-deploy == 'true' && github.event_name != 'pull_request')
+        id: application-info
+        run: |
+          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/application/${{ inputs.application-name }}/info" --query "Parameter.Value" --output text > info.json
+          echo "application_info=$(cat info.json)" >> $GITHUB_OUTPUT
+          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/ecr/info" --query "Parameter.Value" --output text > info.json
+          echo "repository_url=$(cat info.json | jq -r '.${{ inputs.application-name }}')" >> $GITHUB_OUTPUT
+
+      - name: Fetch Task Definition
+        if: (env.should-deploy == 'true' && github.event_name != 'pull_request')
+        id: download-task-definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ fromJson(steps.application-info.outputs.application_info).task_definition_arn }} --query 'taskDefinition' > task-definition.json
+
+      - name: Update Task Definition
+        if: (env.should-deploy == 'true' && github.event_name != 'pull_request')
+        id: update-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ fromJson(steps.application-info.outputs.application_info).container_name }}
+          image: "${{ steps.application-info.outputs.repository_url }}:${{ env.IMAGE_TAG }}"
+
+      - name: Deploy Amazon ECS task definition
+        if: (env.should-deploy == 'true' && github.event_name != 'pull_request')
+        id: deploy
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.update-task-definition.outputs.task-definition }}
+          service: ${{ fromJson(steps.application-info.outputs.application_info).service_name }}
+          cluster: ${{ fromJson(steps.application-info.outputs.application_info).cluster_name }}
+          wait-for-service-stability: true
+
+      - name: Summary
+        if: (env.should-deploy == 'true' && github.event_name != 'pull_request' && always())
+        run: |
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo "#### Deploy for ${{ inputs.application-name }} ####" >> $GITHUB_STEP_SUMMARY
+          echo "**Working Path** 📁 \`${{ env.working-directory }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Task Defintion Update** 🖌 \`${{ steps.update-task-definition.outcome }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deploy Status** 🚀 \`${{ steps.deploy.outcome }}\`" >> $GITHUB_STEP_SUMMARY
