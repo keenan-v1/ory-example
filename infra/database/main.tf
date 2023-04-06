@@ -283,6 +283,20 @@ resource "aws_ecs_task_definition" "runners" {
         image           = "your-awesome-image-gets-injected-here"
         essential       = true
         cpuArchitecture = "X86_64" # Ansible Runner doesn't support ARM, will need to make our own later
+        environment = [
+          {
+            name  = "ORGANIZATION",
+            value = var.organization
+          },
+          {
+            name  = "PROJECT_NAME",
+            value = var.project_name
+          },
+          {
+            name  = "ENVIRONMENT",
+            value = var.environment
+          }
+        ]
         logConfiguration = {
           logDriver = "awslogs"
           options = {
