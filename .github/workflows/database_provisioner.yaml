@@ -18,6 +18,7 @@ on:
 
 env:
   working-directory: "database/provisioning"
+  application-name: "database-provisioner"
   SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}"
 
 permissions:
@@ -83,7 +84,7 @@ jobs:
           PROJECT_NAME: ${{ vars.PROJECT_NAME }}
           ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT_NAME }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: "${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/database-provisioner"
+          ECR_REPOSITORY: "${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/${{ env.application-name }}"
           IMAGE_TAG: ${{ github.sha }}
           context: ${{ env.working-directory }}
 
@@ -112,16 +113,20 @@ jobs:
           aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/cluster/info" --query "Parameter.Value" --output text > info.json
           echo "cluster_name=$(cat info.json | jq -r '.cluster_name')" >> $GITHUB_OUTPUT
           aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/network/info" --query "Parameter.Value" --output text > info.json
-          echo "db_subnets= cat info.json| jq -r '.database_subnet_ids | join(\",\")'" >> $GITHUB_OUTPUT
+          echo "db_subnets=$(cat info.json | jq -r '.database_subnet_ids | join(\",\")'" >> $GITHUB_OUTPUT
+          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/database/info" --query "Parameter.Value" --output text > info.json
+          echo "task_definition_arn=$(cat info.json | jq '.runner_task_definitions[\"${{ env.application-name }}\"]'" 
+          export TASK_DEFINITION_ARN=$(cat info.json | jq '.runner_task_definitions["${{ env.application-name }}"]'
+          aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN --query "taskDefinition" --output text > task-definition.json
 
       - name: Update task definition
         if: success() && github.event_name != 'pull_request'
         id: update-task-definition
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: "database/provisioning/task-definition.json"
-          container-name: "database-provisioner"
-          image: "${{ steps.login-ecr.outputs.registry }}/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/database-provisioner:${{ github.sha }}"
+          task-definition: "task-definition.json"
+          container-name: "${{ env.application-name }}"
+          image: "${{ steps.login-ecr.outputs.registry }}/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/${{ env.application-name }}:${{ github.sha }}"
 
       - name: Run Provisioning
         if: success() && github.event_name != 'pull_request'
@@ -130,7 +135,7 @@ jobs:
             --launch-type FARGATE \
             --task-definition ${{ steps.update-task-definition.outputs.task-definition }} \
             --cluster ${{ steps.gather-info.outputs.cluster_name }} \
-            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.gather-info.outputs.db_subnets }}],assignPublicIp=ENABLED}" \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.gather-info.outputs.db_subnets }}],assignPublicIp=ENABLED}"
 
       - name: Update Summary
         if: always()

@@ -260,16 +260,20 @@ resource "aws_iam_role_policy" "ecs_task_rds_describe_policy" {
   policy   = data.aws_iam_policy_document.ecs_task_rds_describe_policy.json
 }
 
-resource "aws_ecs_task_definition" "runners" {
-  for_each              = local.database_runners
-  family                = "${var.organization}-${var.project_name}-${var.environment}-${each.value}-runner"
-  execution_role_arn    = aws_iam_role.ecs_execution_role[each.value].arn
-  task_role_arn         = aws_iam_role.ecs_task_role[each.value].arn
-  cpu                   = 256
-  memory                = 512
-  networkMode           = "awsvpc"
-  operatingSystemFamily = "LINUX"
-  cpuArchitecture       = "ARM64"
+resource "aws_" "name" {
+  for_each           = local.database_runners
+  family             = "${var.organization}-${var.project_name}-${var.environment}-${each.value}-runner"
+  execution_role_arn = aws_iam_role.ecs_execution_role[each.value].arn
+  task_role_arn      = aws_iam_role.ecs_task_role[each.value].arn
+  cpu                = 256
+  memory             = 512
+  network_mode       = "awsvpc"
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "ARM64"
+  }
+
   container_definitions = jsonencode(
     [
       {
