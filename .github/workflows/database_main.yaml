@@ -3,18 +3,39 @@ name: Build & Deploy Database Modifications
 on:
   workflow_dispatch:
     inputs:
-      force:
+      force-build:
         type: boolean
-        description: "Force provisioner to build and run"
+        description: "Force provisioner to build"
         required: true
         default: false
+      force-run:
+        type: boolean
+        description: "Force provisioner to run"
+        required: true
+        default: false
+      image_tag:
+        type: string
+        description: "Image tag to use"
+        required: true
+        default: "latest"
+
   workflow_call:
     inputs:
-      force:
+      force-build:
         type: boolean
-        description: "Force provisioner to build and run"
+        description: "Force provisioner to build"
         required: true
         default: false
+      force-run:
+        type: boolean
+        description: "Force provisioner to run"
+        required: true
+        default: false
+      image-tag:
+        type: string
+        description: "Image tag to use"
+        required: true
+        default: "latest"
 
 permissions:
   id-token: write
@@ -28,4 +49,6 @@ jobs:
     with:
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
-      force: ${{ inputs.force == 'true' }}
+      force-build: ${{ inputs.force-build == 'true' }}
+      force-run: ${{ inputs.force-run == 'true' }}
+      image-tag: ${{ inputs.image-tag }}
