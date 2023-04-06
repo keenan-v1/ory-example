@@ -36,13 +36,16 @@ on:
       - ".github/workflows/**"
       - "infra/**/*.tf"
       - "applications/**"
+      - "database/**"
 
   pull_request:
     branches:
       - main
     paths:
+      - ".github/workflows/**"
       - "infra/**/*.tf"
       - "applications/**"
+      - "database/**"
 
 permissions:
   id-token: write
@@ -54,8 +57,8 @@ jobs:
     name: Run Infrastructure
     uses: "./.github/workflows/infra_main.yaml"
     with:
-      force-apply: ${{ (inputs.force-apply) }}
-      force-plan: ${{ (inputs.force-plan) }}
+      force-apply: ${{ (inputs.force-apply == 'true') }}
+      force-plan: ${{ (inputs.force-plan == 'true') }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
@@ -64,7 +67,7 @@ jobs:
     needs: run-infra
     uses: "./.github/workflows/database_main.yaml"
     with:
-      force: ${{ (inputs.force-modifications) }}
+      force: ${{ (inputs.force-modifications == 'true') }}
 
   run-applications:
     name: Run Applications
@@ -73,5 +76,5 @@ jobs:
       - run-database-modifications
     uses: "./.github/workflows/application_main.yaml"
     with:
-      force-build: ${{ (inputs.force-build) }}
-      force-deploy: ${{ (inputs.force-deploy) }}
+      force-build: ${{ (inputs.force-build == 'true') }}
+      force-deploy: ${{ (inputs.force-deploy == 'true') }}

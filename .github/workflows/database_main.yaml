@@ -28,4 +28,4 @@ jobs:
     with:
       aws-role: ${{ vars.AWS_ROLE }}
       aws-region: ${{ vars.AWS_REGION }}
-      force: ${{ inputs.force }}
+      force: ${{ inputs.force == 'true' }}
