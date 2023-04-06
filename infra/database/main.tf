@@ -277,7 +277,7 @@ resource "aws_ecs_task_definition" "runners" {
   container_definitions = jsonencode(
     [
       {
-        name            = "${var.organization}-${var.project_name}-${var.environment}-${each.value}"
+        name            = "${each.value}"
         image           = "your-awesome-image-gets-injected-here"
         essential       = true
         cpuArchitecture = "ARM64"
