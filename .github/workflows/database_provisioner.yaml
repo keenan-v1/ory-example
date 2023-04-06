@@ -157,7 +157,7 @@ jobs:
         if: (success() && github.event_name != 'pull_request')
         run: |
           export TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://${{ steps.update-task-definition.outputs.task-definition }} | jq -r '.taskDefinition.taskDefinitionArn')
-          export TASK_ARN = $(aws ecs run-task \
+          export TASK_ARN=$(aws ecs run-task \
             --launch-type FARGATE \
             --task-definition ${TASK_DEF_ARN} \
             --cluster ${{ steps.gather-info.outputs.cluster_name }} \
