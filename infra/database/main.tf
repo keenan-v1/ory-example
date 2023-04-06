@@ -114,10 +114,163 @@ resource "aws_secretsmanager_secret_version" "database_password" {
 }
 
 locals {
+  database_runners = toset([
+    "database-provisioner",
+    # "database-migrator"
+  ])
+}
+
+data "aws_iam_policy_document" "ecs_execution_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type = "Service"
+      identifiers = [
+        "ecs.amazonaws.com"
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role" "ecs_execution_role" {
+  for_each           = local.database_runners
+  name               = "${var.project_name}-${var.environment}-${each.value}-ecs-execution-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_execution_assume_role_policy.json
+}
+
+resource "aws_cloudwatch_log_group" "runner_log" {
+  for_each          = local.database_runners
+  name              = "/${var.organization}/${var.project_name}/${var.environment}/ecs/service/${each.value}"
+  retention_in_days = 7
+}
+
+// Create a CloudWatch logging policy
+data "aws_iam_policy_document" "ecs_execution_cloudwatch_logging_policy" {
+  for_each = local.database_runners
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+    resources = [
+      "${aws_cloudwatch_log_group.runner_log[each.key].arn}:*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_execution_cloudwatch_logging_policy" {
+  for_each = local.database_runners
+  name     = "${var.project_name}-${var.environment}-${each.value}-ecs-cloudwatch-logging-policy"
+  role     = aws_iam_role.ecs_execution_role[each.value].id
+  policy   = data.aws_iam_policy_document.ecs_task_cloudwatch_logging_policy[each.value].json
+}
+
+data "aws_iam_policy_document" "ecs_execution_ecr" {
+  statement {
+    actions = [
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:GetAuthorizationToken"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_execution_ecr" {
+  for_each = local.database_runners
+  name     = "${var.project_name}-${var.environment}-${each.value}-ecs-ecr"
+  role     = aws_iam_role.ecs_execution_role[each.value].id
+  policy   = data.aws_iam_policy_document.ecs_execution_ecr.json
+}
+
+data "aws_iam_policy_document" "ecs_task_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type = "Service"
+      identifiers = [
+        "ecs-tasks.amazonaws.com"
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role" "ecs_task_role" {
+  for_each           = local.database_runners
+  name               = "${var.project_name}-${var.environment}-${each.value}-ecs-task-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role_policy.json
+}
+
+data "aws_caller_identity" "this" {}
+data "aws_region" "this" {}
+
+// Secrets Manager Read & Write policy
+data "aws_iam_policy_document" "ecs_task_secretsmanager_read_write_policy" {
+  statement {
+    sid = "Create"
+    actions = [
+      "secretsmanager:CreateSecret",
+      "secretsmanager:ListSecrets",
+    ]
+    resources = [
+      "*"
+    ]
+  }
+  statement {
+    sid = "Read"
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret",
+    ]
+    resources = [
+      aws_secretsmanager_secret.database_password.arn,
+      "arn:aws:secretsmanager:${data.aws_region.this.name}:${data.aws_caller_identity.this.account_id}:secret:/${var.organization}/${var.project_name}/${var.environment}/database/user/*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_secretsmanager_read_write_policy" {
+  for_each = local.database_runners
+  name     = "${var.project_name}-${var.environment}-${each.value}-ecs-task-secretsmanager-read-write-policy"
+  role     = aws_iam_role.ecs_task_role[each.value].id
+  policy   = data.aws_iam_policy_document.ecs_task_secretsmanager_read_write_policy.json
+}
+
+// Describe RDS policy
+data "aws_iam_policy_document" "ecs_task_rds_describe_policy" {
+  statement {
+    actions = [
+      "rds:DescribeDBInstances",
+      "rds:DescribeDBClusters",
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_rds_describe_policy" {
+  for_each = local.database_runners
+  name     = "${var.project_name}-${var.environment}-${each.value}-ecs-task-rds-describe-policy"
+  role     = aws_iam_role.ecs_task_role[each.value].id
+  policy   = data.aws_iam_policy_document.ecs_task_rds_describe_policy.json
+}
+
+locals {
   database_info = {
     identifier = aws_db_instance.database.identifier
     host       = aws_db_instance.database.address
     port       = aws_db_instance.database.port
+    runner_execution_roles = {
+      for _, runner in local.database_runners : runner => aws_iam_role.ecs_execution_role[runner].arn
+    }
+    runner_task_roles = {
+      for _, runner in local.database_runners : runner => aws_iam_role.ecs_task_role[runner].arn
+    }
   }
 }
 
