@@ -226,6 +226,8 @@ data "aws_iam_policy_document" "ecs_task_secretsmanager_read_write_policy" {
     actions = [
       "secretsmanager:GetSecretValue",
       "secretsmanager:DescribeSecret",
+      "secretsmanager:GetResourcePolicy",
+      "secretsmanager:ListSecretVersionIds"
     ]
     resources = [
       aws_secretsmanager_secret.database_password.arn,
