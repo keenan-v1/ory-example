@@ -11,6 +11,10 @@ on:
         type: boolean
         description: "Force plan"
         required: true
+    secrets:
+      TERRAFORM_CLOUD_TOKEN:
+        description: "Terraform Cloud Token"
+        required: true
   workflow_dispatch:
     inputs:
       force-apply:
@@ -37,6 +41,9 @@ jobs:
       working-directory: infra/network
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
+    secrets:
+      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+
   ecr:
     name: ECR
     uses: ./.github/workflows/infra_terraform.yaml
@@ -44,6 +51,9 @@ jobs:
       working-directory: infra/ecr
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
+    secrets:
+      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+
   database:
     name: Database
     uses: ./.github/workflows/infra_terraform.yaml
@@ -53,6 +63,9 @@ jobs:
       working-directory: infra/database
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
+    secrets:
+      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+
   ecs:
     name: ECS
     uses: ./.github/workflows/infra_terraform.yaml
@@ -62,14 +75,20 @@ jobs:
       working-directory: infra/ecs
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
+    secrets:
+      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+
   kratos:
     name: "Application: Kratos"
     uses: ./.github/workflows/infra_terraform.yaml
     needs:
       - network
       - ecs
+      - ecr
       - database
     with:
       working-directory: infra/applications/kratos
       force-apply: ${{ inputs.force-apply == 'true' }}
       force-plan: ${{ inputs.force-plan == 'true' }}
+    secrets:
+      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}

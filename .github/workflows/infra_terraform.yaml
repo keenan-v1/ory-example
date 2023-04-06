@@ -30,6 +30,10 @@ on:
         type: boolean
         description: "Force plan"
         required: true
+    secrets:
+      TERRAFORM_CLOUD_TOKEN:
+        description: "Terraform Cloud Token"
+        required: true
 
 permissions:
   id-token: write

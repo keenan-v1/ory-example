@@ -57,6 +57,8 @@ jobs:
     with:
       force-apply: ${{ (inputs.force-apply == 'true') }}
       force-plan: ${{ (inputs.force-plan == 'true') }}
+    secrets:
+      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
   run-database-modifications:
     name: Run Database Modifications
