@@ -6,12 +6,12 @@ on:
       force-build:
         type: boolean
         description: "Force provisioner to build"
-        required: true
+        required: false
         default: false
       force-run:
         type: boolean
         description: "Force provisioner to run"
-        required: true
+        required: false
         default: false
       image_tag:
         type: string
