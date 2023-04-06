@@ -265,6 +265,9 @@ locals {
     identifier = aws_db_instance.database.identifier
     host       = aws_db_instance.database.address
     port       = aws_db_instance.database.port
+    runner_log_names = {
+      for _, runner in local.database_runners : runner => aws_cloudwatch_log_group.runner_log[runner].name
+    }
     runner_execution_roles = {
       for _, runner in local.database_runners : runner => aws_iam_role.ecs_execution_role[runner].arn
     }
