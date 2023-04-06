@@ -1,0 +1,31 @@
+name: Build & Deploy Database Modifications
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        type: boolean
+        description: "Force provisioner to build and run"
+        required: true
+        default: false
+  workflow_call:
+    inputs:
+      force:
+        type: boolean
+        description: "Force provisioner to build and run"
+        required: true
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  provisioner:
+    name: Provisioner
+    uses: "./.github/workflows/database_provisioner.yaml"
+    with:
+      aws-role: ${{ vars.AWS_ROLE }}
+      aws-region: ${{ vars.AWS_REGION }}
+      force: ${{ inputs.force }}

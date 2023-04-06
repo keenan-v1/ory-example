@@ -1,6 +1,19 @@
 name: Build & Deploy Applications
 
 on:
+  workflow_dispatch:
+    inputs:
+      force-build:
+        type: boolean
+        description: "Force build"
+        required: false
+        default: false
+      force-deploy:
+        type: boolean
+        description: "Force deploy"
+        required: false
+        default: false
+
   workflow_call:
     inputs:
       force-build:

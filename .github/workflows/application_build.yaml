@@ -105,6 +105,14 @@ jobs:
               body: output
             })
 
+      - name: Update Summary
+        if: always()
+        run: |
+          echo '' > $GITHUB_STEP_SUMMARY
+          echo "#### Application Build for ${{ inputs.application-name }} ####" > $GITHUB_STEP_SUMMARY
+          echo "#### Working Path 📁: \`${{ inputs.working-directory }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "#### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`" >> $GITHUB_STEP_SUMMARY
+
       - name: Build Status
         if: steps.build-image.outcome == 'failure'
         run: exit 1

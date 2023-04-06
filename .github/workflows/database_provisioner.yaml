@@ -1,18 +1,141 @@
-# WORK IN PROGRESS
-# DOES NOT WORK YET
 name: Database Provisioner
-
 on:
   workflow_call:
+    inputs:
+      aws-role:
+        type: string
+        description: "AWS Role"
+        required: true
+      aws-region:
+        type: string
+        description: "AWS Region"
+        required: true
+      force:
+        type: boolean
+        description: "Force provisioner to build and run"
+        required: true
+        default: false
+
+env:
+  working-directory: "database/provisioning"
+  SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}"
 
 permissions:
   id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
-  deploy-to-ecs-fargate:
+  check-run:
+    name: Check Run
     runs-on: ubuntu-latest
+    outputs:
+      run-tasks: ${{ contains(steps.filter-paths.outputs.changes, 'changed') || inputs.force }}
     steps:
-      - name: TODO
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Filter Paths
+        uses: dorny/paths-filter@v2
+        id: filter-paths
+        with:
+          filters: |
+            changed:
+              - '${{ env.working-directory }}/**'
+
+  provisioner:
+    name: Build & Run
+    runs-on: ubuntu-latest
+    needs: check-run
+    if: (needs.check-run.outputs.run-tasks == 'true' || inputs.force)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup AWS Role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ inputs.aws-role }}
+          aws-region: ${{ inputs.aws-region }}
+          role-duration-seconds: 3600
+          role-session-name: ${{ github.event.repository.name }}
+
+      - name: Set up QEMU dependency
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push image to Amazon ECR
+        uses: docker/build-push-action@v2
+        id: build-image
+        with:
+          context: ${{ env.context }}
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          platforms: linux/arm64
+          push: true
+        env:
+          ORGANIZATION: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
+          PROJECT_NAME: ${{ vars.PROJECT_NAME }}
+          ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT_NAME }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: "${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/database-provisioner"
+          IMAGE_TAG: ${{ github.sha }}
+          context: ${{ env.working-directory }}
+
+      - name: Update Pull Request
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request' && always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Working Path 📁: \`${{ env.working-directory }}\`
+            #### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Fetch Cluster & Network Info
+        if: success() && github.event_name != 'pull_request'
+        id: gather-info
         run: |
-          echo "TODO"
+          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/cluster/info" --query "Parameter.Value" --output text > info.json
+          echo "cluster_name=$(cat info.json | jq -r '.cluster_name')" >> $GITHUB_OUTPUT
+          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/network/info" --query "Parameter.Value" --output text > info.json
+          echo "db_subnets=$(cat info.json | jq -r '.database_subnet_ids')" >> $GITHUB_OUTPUT
+
+      - name: Update task definition
+        if: success() && github.event_name != 'pull_request'
+        id: update-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: "database/provisioning/task-definition.json"
+          container-name: "database-provisioner"
+          image: "${{ steps.login-ecr.outputs.registry }}/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/database-provisioner:${{ github.sha }}"
+
+      - name: Run Provisioning
+        if: success() && github.event_name != 'pull_request'
+        run: |
+          aws ecs run-task \
+            --launch-type FARGATE \
+            --task-definition ${{ steps.update-task-definition.outputs.task-definition }} \
+            --cluster ${{ steps.gather-info.outputs.cluster_name }} \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.gather-info.outputs.db_subnets }}],assignPublicIp=ENABLED}" \
+
+      - name: Update Summary
+        if: always()
+        run: |
+          echo '' > $GITHUB_STEP_SUMMARY
+          echo "#### Database Provisioner Build ####" > $GITHUB_STEP_SUMMARY
+          echo "#### Working Path 📁: \`${{ env.working-directory }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "#### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`" >> $GITHUB_STEP_SUMMARY

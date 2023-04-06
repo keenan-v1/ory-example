@@ -1,0 +1,35 @@
+- name: Configure App Database & User
+  vars:
+    organization: "{{ lookup('env', 'ORGANIZATION') }}"
+    project_name: "{{ lookup('env', 'PROJECT_NAME') }}"
+    environ: "{{ lookup('env', 'ENVIRONMENT') }}"
+    app_secret_path: "/{{ organization }}/{{ project_name }}/{{ environ }}/database/user/{{ application_name }}/password"
+    aws_region: "{{ lookup('env', 'AWS_REGION') }}"
+    admin_password: "{{ lookup('amazon.aws.aws_secret', '/{{ organization }}/{{ project_name }}/{{ environ }}/database/user/admin/password', region=aws_region) }}"
+  block:
+    - name: Create {{ application_name }} Database
+      community.mysql.mysql_db:
+        name: "{{ application_name }}"
+        state: present
+        login_host: "{{ hostvars[inventory_hostname]['endpoint']['address'] }}"
+        login_port: "{{ hostvars[inventory_hostname]['endpoint']['port'] }}"
+        login_user: "{{ hostvars[inventory_hostname]['master_username'] }}"
+        login_password: "{{ admin_password }}"
+    - name: Set {{ application_name }} User Password
+      community.aws.secretsmanager_secret:
+        name: "{{ app_secret_path }}"
+        state: present
+        secret_type: "string"
+        secret: "{{ lookup('community.general.random_string', length=32, special=false) }}"
+        overwrite: false
+    - name: Provision {{ application_name }} User
+      community.mysql.mysql_user:
+        name: "{{ application_name }}"
+        password: "{{ lookup('amazon.aws.aws_secret', app_secret_path, region=aws_region) }}"
+        priv: "{{ application_name }}.*:ALL"
+        host: "%"
+        state: present
+        login_host: "{{ hostvars[inventory_hostname]['endpoint']['address'] }}"
+        login_port: "{{ hostvars[inventory_hostname]['endpoint']['port'] }}"
+        login_user: "{{ hostvars[inventory_hostname]['master_username'] }}"
+        login_password: "{{ admin_password }}"

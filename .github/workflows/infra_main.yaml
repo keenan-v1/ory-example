@@ -18,11 +18,15 @@ on:
   workflow_dispatch:
     inputs:
       force-apply:
+        type: boolean
         description: "Force apply"
-        required: true
+        required: false
+        default: false
       force-plan:
+        type: boolean
         description: "Force plan"
-        required: true
+        required: false
+        default: false
 
 permissions:
   id-token: write

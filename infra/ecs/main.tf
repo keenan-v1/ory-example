@@ -123,6 +123,11 @@ module "ecs" {
 
   default_capacity_provider_use_fargate = false
 
+  fargate_capacity_providers = {
+    FARGATE      = {}
+    FARGATE_SPOT = {}
+  }
+
   autoscaling_capacity_providers = {
     one = {
       auto_scaling_group_arn         = module.autoscaling.autoscaling_group_arn

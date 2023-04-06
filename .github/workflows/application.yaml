@@ -21,14 +21,17 @@ on:
   workflow_dispatch:
     inputs:
       force-build:
+        type: boolean
         description: "Force Build"
         required: false
-        default: "false"
+        default: false
       force-deploy:
+        type: boolean
         description: "Force Deploy"
         required: false
-        default: "false"
+        default: false
       application-name:
+        type: string
         description: "Application Name"
         required: true
 

@@ -4,21 +4,30 @@ on:
   workflow_dispatch:
     inputs:
       force-apply:
+        type: boolean
         description: "Force apply terraform"
         required: false
-        default: "false"
+        default: false
       force-plan:
+        type: boolean
         description: "Force plan terraform"
         required: false
-        default: "false"
+        default: false
       force-build:
+        type: boolean
         description: "Force build docker image"
         required: false
-        default: "false"
+        default: false
       force-deploy:
+        type: boolean
         description: "Force deploy docker image"
         required: false
-        default: "false"
+        default: false
+      force-modifications:
+        type: boolean
+        description: "Force database modifications"
+        required: false
+        default: false
 
   push:
     branches:
@@ -45,15 +54,24 @@ jobs:
     name: Run Infrastructure
     uses: "./.github/workflows/infra_main.yaml"
     with:
-      force-apply: ${{ (inputs.force-apply == 'true') }}
-      force-plan: ${{ (inputs.force-plan == 'true') }}
+      force-apply: ${{ (inputs.force-apply) }}
+      force-plan: ${{ (inputs.force-plan) }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
+  run-database-modifications:
+    name: Run Database Modifications
+    needs: run-infra
+    uses: "./.github/workflows/database_main.yaml"
+    with:
+      force: ${{ (inputs.force-modifications) }}
+
   run-applications:
     name: Run Applications
-    needs: run-infra
+    needs:
+      - run-infra
+      - run-database-modifications
     uses: "./.github/workflows/application_main.yaml"
     with:
-      force-build: ${{ (inputs.force-build == 'true') }}
-      force-deploy: ${{ (inputs.force-deploy == 'true') }}
+      force-build: ${{ (inputs.force-build) }}
+      force-deploy: ${{ (inputs.force-deploy) }}

@@ -2,9 +2,9 @@ FROM quay.io/ansible/ansible-runner:latest
 
 COPY src/config/ /runner/config/
 
-ENV ORGANIZATION=example-org
-ENV PROJECT_NAME=example-project
-ENV ENVIRONMENT=dev
+ENV ORGANIZATION=${ORGANIZATION:-example-organization}
+ENV PROJECT_NAME=${PROJECT_NAME:-example-project}
+ENV ENVIRONMENT=${ENVIRONMENT:-dev}
 
 RUN yum install -y mysql python3-pip && \
     yum clean all && \
@@ -12,6 +12,7 @@ RUN yum install -y mysql python3-pip && \
     ansible-galaxy collection install -r /runner/config/ansible-requirements.yaml
 
 COPY src/inventory/ /runner/inventory/
+COPY src/playbooks/ /runner/playbooks/
 COPY src/provisioner.yaml /runner/provisioner.yaml
 
 ENV RUNNER_PLAYBOOK="/runner/provisioner.yaml"
