@@ -262,7 +262,7 @@ resource "aws_iam_role_policy" "ecs_task_rds_describe_policy" {
 
 resource "aws_ecs_task_definition" "runners" {
   for_each           = local.database_runners
-  family             = "${var.organization}-${var.project_name}-${var.environment}-${each.value}-runner"
+  family             = replace("${var.organization}-${var.project_name}-${var.environment}-${each.value}-runner", "-", "_")
   execution_role_arn = aws_iam_role.ecs_execution_role[each.value].arn
   task_role_arn      = aws_iam_role.ecs_task_role[each.value].arn
   cpu                = 256
