@@ -7,27 +7,22 @@ on:
         type: boolean
         description: "Force apply terraform"
         required: false
-        default: false
       force-plan:
         type: boolean
         description: "Force plan terraform"
         required: false
-        default: false
       force-build:
         type: boolean
         description: "Force build docker image"
         required: false
-        default: false
       force-deploy:
         type: boolean
         description: "Force deploy docker image"
         required: false
-        default: false
       force-modifications:
         type: boolean
         description: "Force database modifications"
         required: false
-        default: false
 
   push:
     branches:
@@ -52,7 +47,7 @@ permissions:
 
 jobs:
   run-infra:
-    name: Run Infrastructure
+    name: Infra
     uses: "./.github/workflows/infra_main.yaml"
     with:
       force-apply: ${{ (inputs.force-apply == 'true') }}
@@ -61,7 +56,7 @@ jobs:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
   run-database-modifications:
-    name: Run Database Modifications
+    name: Database
     needs: run-infra
     uses: "./.github/workflows/database_main.yaml"
     with:
@@ -70,7 +65,7 @@ jobs:
       image-tag: "latest"
 
   run-applications:
-    name: Run Applications
+    name: Apps
     needs:
       - run-infra
       - run-database-modifications

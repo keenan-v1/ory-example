@@ -7,16 +7,13 @@ on:
         type: boolean
         description: "Force Build"
         required: false
-        default: false
       force-deploy:
         type: boolean
         description: "Force Deploy"
         required: false
-        default: false
       application-name:
         type: string
         description: "Application Name"
-        required: true
       commit-id:
         type: string
         description: "Commit ID to deploy"
@@ -29,12 +26,10 @@ on:
         type: boolean
         description: "Force Build"
         required: false
-        default: false
       force-deploy:
         type: boolean
         description: "Force Deploy"
         required: false
-        default: false
       application-name:
         type: string
         description: "Application Name"
@@ -61,7 +56,7 @@ env:
 
 jobs:
   build-and-deploy:
-    name: Build & Deploy
+    name: ${{ inputs.application-name }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

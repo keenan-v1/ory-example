@@ -6,12 +6,10 @@ on:
         type: boolean
         description: "Force provisioner to build"
         required: false
-        default: false
       force-run:
         type: boolean
         description: "Force provisioner to run"
         required: false
-        default: false
       image-tag:
         type: string
         description: "Image tag"
@@ -35,7 +33,7 @@ permissions:
 
 jobs:
   provisioner:
-    name: Build & Run
+    name: "Provision"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
