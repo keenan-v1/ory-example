@@ -272,7 +272,7 @@ resource "aws_ecs_task_definition" "runners" {
 
   runtime_platform {
     operating_system_family = "LINUX"
-    cpu_architecture        = "ARM64"
+    cpu_architecture        = "X86_64" # Ansible Runner doesn't support ARM, will need to make our own later
   }
 
   container_definitions = jsonencode(
@@ -281,7 +281,7 @@ resource "aws_ecs_task_definition" "runners" {
         name            = "${each.value}"
         image           = "your-awesome-image-gets-injected-here"
         essential       = true
-        cpuArchitecture = "ARM64"
+        cpuArchitecture = "X86_64" # Ansible Runner doesn't support ARM, will need to make our own later
         logConfiguration = {
           logDriver = "awslogs"
           options = {
