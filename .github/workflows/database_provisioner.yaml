@@ -140,6 +140,9 @@ jobs:
           aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/database/info" --query "Parameter.Value" --output text > info.json
           export TASK_DEFINITION_ARN=$(cat info.json | jq -r '.runner_task_definitions["${{ env.application-name }}"]')
           aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN --query "taskDefinition" > task-definition.json
+          tmp=$(mktemp)
+          jq 'del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)' task-definition.json > $tmp
+          mv $tmp task-definition.json
 
       - name: Update task definition
         if: success() && github.event_name != 'pull_request'
