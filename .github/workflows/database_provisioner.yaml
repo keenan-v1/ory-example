@@ -157,11 +157,24 @@ jobs:
         if: (success() && github.event_name != 'pull_request')
         run: |
           export TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://${{ steps.update-task-definition.outputs.task-definition }} | jq -r '.taskDefinition.taskDefinitionArn')
-          aws ecs run-task \
+          export TASK_ARN = $(aws ecs run-task \
             --launch-type FARGATE \
             --task-definition ${TASK_DEF_ARN} \
             --cluster ${{ steps.gather-info.outputs.cluster_name }} \
-            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.gather-info.outputs.db_subnets }}],assignPublicIp=ENABLED}"
+            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.gather-info.outputs.db_subnets }}],assignPublicIp=ENABLED}" | jq -r '.tasks[0].taskArn')
+          echo "task_arn=${TASK_ARN}" >> $GITHUB_OUTPUT
+
+      - name: Wait For Provisioning
+        id: wait-for-provisioning
+        if: (success() && github.event_name != 'pull_request')
+        run: |
+          aws ecs wait tasks-stopped --cluster ${{ steps.gather-info.outputs.cluster_name }} --tasks ${{ steps.run-provisioning.outputs.task_arn }}
+          export EXIT_CODE=$(aws ecs describe-tasks --cluster ${{ steps.gather-info.outputs.cluster_name }} --tasks ${{ steps.run-provisioning.outputs.task_arn }} | jq -r '.tasks[0].containers[0].exitCode')
+          echo "exit_code=${EXIT_CODE}" >> $GITHUB_OUTPUT
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "Provisioning Failed"
+            exit 1
+          fi
 
       - name: Update Summary
         if: always()
@@ -171,4 +184,4 @@ jobs:
           echo "#### Working Path 📁: \`${{ env.working-directory }}\`" >> $GITHUB_STEP_SUMMARY
           echo "#### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`" >> $GITHUB_STEP_SUMMARY
           echo "#### Task Definition Update ⚙️:\`${{ steps.update-task-definition.outcome }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "#### Provisioning ⚙️:\`${{ steps.run-provisioning.outcome }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "#### Provisioning:\`${{ steps.wait-for-provisioning.outcome }}\`" >> $GITHUB_STEP_SUMMARY
