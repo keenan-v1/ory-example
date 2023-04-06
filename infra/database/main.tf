@@ -247,6 +247,7 @@ data "aws_iam_policy_document" "ecs_task_rds_describe_policy" {
     actions = [
       "rds:DescribeDBInstances",
       "rds:DescribeDBClusters",
+      "rds:ListTagsForResource"
     ]
     resources = [
       "*"
