@@ -260,19 +260,43 @@ resource "aws_iam_role_policy" "ecs_task_rds_describe_policy" {
   policy   = data.aws_iam_policy_document.ecs_task_rds_describe_policy.json
 }
 
+resource "aws_ecs_task_definition" "runners" {
+  for_each              = local.database_runners
+  family                = "${var.organization}-${var.project_name}-${var.environment}-${each.value}-runner"
+  execution_role_arn    = aws_iam_role.ecs_execution_role[each.value].arn
+  task_role_arn         = aws_iam_role.ecs_task_role[each.value].arn
+  cpu                   = 256
+  memory                = 512
+  networkMode           = "awsvpc"
+  operatingSystemFamily = "LINUX"
+  cpuArchitecture       = "ARM64"
+  container_definitions = jsonencode(
+    [
+      {
+        name            = "${var.organization}-${var.project_name}-${var.environment}-${each.value}"
+        image           = "your-awesome-image-gets-injected-here"
+        essential       = true
+        cpuArchitecture = "ARM64"
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.runner_log[each.key].name
+            awslogs-region        = data.aws_region.this.name
+            awslogs-stream-prefix = "ecs-${each.value}-"
+          }
+        }
+      }
+    ]
+  )
+}
+
 locals {
   database_info = {
     identifier = aws_db_instance.database.identifier
     host       = aws_db_instance.database.address
     port       = aws_db_instance.database.port
-    runner_log_names = {
-      for _, runner in local.database_runners : runner => aws_cloudwatch_log_group.runner_log[runner].name
-    }
-    runner_execution_roles = {
-      for _, runner in local.database_runners : runner => aws_iam_role.ecs_execution_role[runner].arn
-    }
-    runner_task_roles = {
-      for _, runner in local.database_runners : runner => aws_iam_role.ecs_task_role[runner].arn
+    runner_task_definitions = {
+      for _, runner in local.database_runners : runner => aws_ecs_task_definition.runners[runner].arn
     }
   }
 }
