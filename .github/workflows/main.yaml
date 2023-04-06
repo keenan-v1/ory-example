@@ -65,7 +65,9 @@ jobs:
     needs: run-infra
     uses: "./.github/workflows/database_main.yaml"
     with:
-      force: ${{ (inputs.force-modifications == 'true') }}
+      force-build: ${{ (inputs.force-modifications == 'true') }}
+      force-run: ${{ (inputs.force-modifications == 'true') }}
+      image-tag: "latest"
 
   run-applications:
     name: Run Applications
