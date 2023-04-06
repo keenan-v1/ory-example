@@ -163,7 +163,7 @@ resource "aws_iam_role_policy" "ecs_execution_cloudwatch_logging_policy" {
   for_each = local.database_runners
   name     = "${var.project_name}-${var.environment}-${each.value}-ecs-cloudwatch-logging-policy"
   role     = aws_iam_role.ecs_execution_role[each.value].id
-  policy   = data.aws_iam_policy_document.ecs_task_cloudwatch_logging_policy[each.value].json
+  policy   = data.aws_iam_policy_document.ecs_execution_cloudwatch_logging_policy[each.value].json
 }
 
 data "aws_iam_policy_document" "ecs_execution_ecr" {
