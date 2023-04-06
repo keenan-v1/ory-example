@@ -113,10 +113,9 @@ jobs:
           aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/cluster/info" --query "Parameter.Value" --output text > info.json
           echo "cluster_name=$(cat info.json | jq -r '.cluster_name')" >> $GITHUB_OUTPUT
           aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/network/info" --query "Parameter.Value" --output text > info.json
-          echo "db_subnets=$(cat info.json | jq -r '.database_subnet_ids | join(\",\")')" >> $GITHUB_OUTPUT
+          echo "db_subnets=$(cat info.json | jq --arg a "," -r '.database_subnet_ids | join($a)')" >> $GITHUB_OUTPUT
           aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/database/info" --query "Parameter.Value" --output text > info.json
-          echo "task_definition_arn=$(cat info.json | jq '.runner_task_definitions[\"${{ env.application-name }}\"]')" 
-          export TASK_DEFINITION_ARN=$(cat info.json | jq '.runner_task_definitions["${{ env.application-name }}"]')
+          export TASK_DEFINITION_ARN=$(cat info.json | jq -r '.runner_task_definitions["${{ env.application-name }}"]')
           aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN --query "taskDefinition" --output text > task-definition.json
 
       - name: Update task definition
