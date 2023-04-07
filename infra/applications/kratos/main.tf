@@ -421,6 +421,11 @@ resource "aws_ecs_service" "service" {
     expression = ""
   }
 
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
   capacity_provider_strategy {
     capacity_provider = "one"
     weight            = 100
