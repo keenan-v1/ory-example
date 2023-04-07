@@ -88,19 +88,25 @@ jobs:
       - run-applications
     runs-on: ubuntu-latest
     steps:
+      - name: Fetch Comment
+        uses: actions/cache@v3
+        with:
+          path: comment.md
+          key: ${{ github.run_id }}
+      - name: Load Comment
+        id: load-comment
+        run: |
+          echo "comment-text=$(cat comment.md)" >> $GITHUB_OUTPUT
       - name: Add Comment
         uses: actions/github-script@v5
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const cache = require('@actions/cache');
-            const path = "comment.md"
-            const cacheKey = await cache.restoreCache(path, "${{ github.run_id }}")
             const fs = require('fs');
-            const contents = fs.readFileSync(path, 'utf8');
-            const output = `🤖 Here is the result of your workflow run.
+            const content = fs.readFileSync('comment.md', 'utf8');
+            const output = `🤖 Here is the result of your workflow run. 🤖
 
-            ${contents}
+            ${content}
 
             *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
 
