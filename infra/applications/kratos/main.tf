@@ -99,7 +99,7 @@ module "alb" {
     {
       name_prefix          = "pub-"
       backend_protocol     = "HTTP"
-      backend_port         = 4433
+      backend_port         = 0
       target_type          = "instance"
       deregistration_delay = 10
       health_check = {
@@ -117,7 +117,7 @@ module "alb" {
     {
       name_prefix          = "adm-"
       backend_protocol     = "HTTP"
-      backend_port         = 4434
+      backend_port         = 0
       target_type          = "instance"
       deregistration_delay = 10
       health_check = {

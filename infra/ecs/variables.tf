@@ -26,7 +26,7 @@ variable "repository" {
 variable "instance_type" {
   type        = string
   description = "The instance type to use"
-  default     = "t4g.micro"
+  default     = "t4g.small"
 }
 
 variable "ami_ssm_parameter" {
