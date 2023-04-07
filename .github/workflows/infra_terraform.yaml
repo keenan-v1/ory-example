@@ -44,8 +44,8 @@ env:
   TF_CLOUD_ORGANIZATION: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
   AWS_ROLE: ${{ vars.AWS_ROLE }}
   AWS_REGION: ${{ vars.AWS_REGION }}
-  should-plan: ${{ fromJson(inputs.force-plan) || github.event_name == 'pull_request' }}
-  should-apply: ${{ fromJson(inputs.force-apply) && github.event_name != 'pull_request' }}
+  should-plan: ${{ fromJson(inputs.force-plan || false) }}
+  should-apply: ${{ fromJson(inputs.force-apply || false) && github.event_name != 'pull_request' }}
 
 jobs:
   terraform:
@@ -79,21 +79,25 @@ jobs:
           role-session-name: ${{ github.event.repository.name }}
 
       - name: Terraform Setup
+        if: (env.should-plan == 'true' || env.should-apply == 'true')
         uses: hashicorp/setup-terraform@v2.0.3
         with:
           cli_config_credentials_token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
       - name: Terraform fmt
+        if: (env.should-plan == 'true' || env.should-apply == 'true')
         id: fmt
         working-directory: ${{ inputs.working-directory }}
         run: terraform fmt -check
 
       - name: Terraform Init
+        if: (env.should-plan == 'true' || env.should-apply == 'true')
         id: init
         working-directory: ${{ inputs.working-directory }}
         run: terraform init -no-color
 
       - name: Terraform Validate
+        if: (env.should-plan == 'true' || env.should-apply == 'true')
         id: validate
         working-directory: ${{ inputs.working-directory }}
         run: terraform validate -no-color

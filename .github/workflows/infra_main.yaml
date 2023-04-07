@@ -37,8 +37,8 @@ jobs:
     uses: ./.github/workflows/infra_terraform.yaml
     with:
       working-directory: infra/network
-      force-apply: ${{ fromJson(inputs.force-apply) }}
-      force-plan: ${{ fromJson(inputs.force-plan) }}
+      force-apply: ${{ fromJson(inputs.force-apply || false) }}
+      force-plan: ${{ fromJson(inputs.force-plan || false) }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
@@ -47,8 +47,8 @@ jobs:
     uses: ./.github/workflows/infra_terraform.yaml
     with:
       working-directory: infra/ecr
-      force-apply: ${{ fromJson(inputs.force-apply) }}
-      force-plan: ${{ fromJson(inputs.force-plan) }}
+      force-apply: ${{ fromJson(inputs.force-apply || false) }}
+      force-plan: ${{ fromJson(inputs.force-plan || false) }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
@@ -59,8 +59,8 @@ jobs:
       - network
     with:
       working-directory: infra/database
-      force-apply: ${{ fromJson(inputs.force-apply) }}
-      force-plan: ${{ fromJson(inputs.force-plan) }}
+      force-apply: ${{ fromJson(inputs.force-apply || false) }}
+      force-plan: ${{ fromJson(inputs.force-plan || false) }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
@@ -71,8 +71,8 @@ jobs:
       - network
     with:
       working-directory: infra/ecs
-      force-apply: ${{ fromJson(inputs.force-apply) }}
-      force-plan: ${{ fromJson(inputs.force-plan) }}
+      force-apply: ${{ fromJson(inputs.force-apply || false) }}
+      force-plan: ${{ fromJson(inputs.force-plan || false) }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
@@ -86,7 +86,7 @@ jobs:
       - database
     with:
       working-directory: infra/applications/kratos
-      force-apply: ${{ fromJson(inputs.force-apply) }}
-      force-plan: ${{ fromJson(inputs.force-plan) }}
+      force-apply: ${{ fromJson(inputs.force-apply || false) }}
+      force-plan: ${{ fromJson(inputs.force-plan || false) }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
