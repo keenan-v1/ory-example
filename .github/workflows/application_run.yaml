@@ -48,8 +48,8 @@ permissions:
 env:
   working-directory: "applications/${{ inputs.application-name }}"
   SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}"
-  should-build: ${{ (fromJson(inputs.force-build) || inputs.image-tag == 'latest') }}
-  should-deploy: ${{ (fromJson(inputs.force-deploy) || inputs.image-tag == 'latest') && github.event_name != 'pull_request' }}
+  should-build: ${{ (fromJson(inputs.force-build || false)) }}
+  should-deploy: ${{ (fromJson(inputs.force-deploy || false)) && github.event_name != 'pull_request' }}
   IMAGE_TAG: ${{ inputs.image-tag }}
   AWS_ROLE: ${{ vars.AWS_ROLE }}
   AWS_REGION: ${{ vars.AWS_REGION }}
@@ -78,6 +78,7 @@ jobs:
           echo "should-run=${{ contains(steps.check-run.outputs.changes, 'changed') }}" >> $GITHUB_ENV
 
       - name: Setup AWS Role
+        if: (env.should-build == 'true' || env.should-deploy == 'true')
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ env.AWS_ROLE }}
@@ -86,7 +87,7 @@ jobs:
           role-session-name: ${{ github.event.repository.name }}
 
       - name: Set Image Tag
-        if: (env.should-build == 'true')
+        if: (env.should-build == 'true' || inputs.image-tag == 'latest')
         run: |
           echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
 
@@ -99,6 +100,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Login to Amazon ECR
+        if: (env.should-build == 'true' || env.should-deploy == 'true')
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
@@ -117,26 +119,8 @@ jobs:
           IMAGE_TAG: ${{ github.sha }} # We don't use IMAGE_TAG here so we don't accidentally overwrite an existing image
           context: ${{ env.working-directory }}
 
-      - name: Update Pull Request
-        uses: actions/github-script@v6
-        if: (github.event_name == 'pull_request' && always())
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Working Path 📁: \`${{ env.working-directory }}\`
-            #### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`
-
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
-
       - name: Update Summary
-        if: (env.should-build == 'true' && always())
+        if: always()
         run: |
           echo '' >> $GITHUB_STEP_SUMMARY
           echo "#### Application Build for ${{ inputs.application-name }} ####" >> $GITHUB_STEP_SUMMARY

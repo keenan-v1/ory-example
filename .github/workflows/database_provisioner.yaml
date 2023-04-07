@@ -20,8 +20,8 @@ env:
   working-directory: "database/provisioning"
   application-name: "database-provisioner"
   SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}"
-  should-build: ${{ (fromJson(inputs.force-build) || inputs.image-tag == 'latest') }}
-  should-run: ${{ (fromJson(inputs.force-run) || inputs.image-tag == 'latest') && github.event_name != 'pull_request' }}
+  should-build: ${{ (fromJson(inputs.force-build || false)) }}
+  should-run: ${{ (fromJson(inputs.force-run || false)) && github.event_name != 'pull_request' }}
   IMAGE_TAG: ${{ inputs.image-tag }}
   AWS_ROLE: ${{ vars.AWS_ROLE }}
   AWS_REGION: ${{ vars.AWS_REGION }}
@@ -56,6 +56,7 @@ jobs:
           echo "should-run=${{ contains(steps.check-run.outputs.changes, 'changed') }}" >> $GITHUB_ENV
 
       - name: Setup AWS Role
+        if: (env.should-build == 'true' || env.should-run == 'true')
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ env.AWS_ROLE }}
@@ -64,7 +65,7 @@ jobs:
           role-session-name: ${{ github.event.repository.name }}
 
       - name: Set Image Tag
-        if: (env.should-build == 'true')
+        if: (env.should-build == 'true' || inputs.image-tag == 'latest')
         run: |
           echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
 
@@ -77,6 +78,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Login to Amazon ECR
+        if: (env.should-build == 'true' || env.should-run == 'true')
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
@@ -97,24 +99,6 @@ jobs:
           ECR_REPOSITORY: "${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/${{ env.application-name }}"
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
           context: ${{ env.working-directory }}
-
-      - name: Update Pull Request
-        uses: actions/github-script@v6
-        if: (github.event_name == 'pull_request' && always())
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Working Path 📁: \`${{ env.working-directory }}\`
-            #### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`
-
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
 
       - name: Fetch Cluster & Network Info
         if: (success() && env.should-run == 'true' && github.event_name != 'pull_request')

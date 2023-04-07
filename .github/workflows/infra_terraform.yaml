@@ -44,8 +44,8 @@ env:
   TF_CLOUD_ORGANIZATION: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
   AWS_ROLE: ${{ vars.AWS_ROLE }}
   AWS_REGION: ${{ vars.AWS_REGION }}
-  should-plan: ${{ fromJson(inputs.force-plan) || github.event_name == 'pull_request' }}
-  should-apply: ${{ fromJson(inputs.force-apply) && github.event_name != 'pull_request' }}
+  should-plan: ${{ fromJson(inputs.force-plan || false) }}
+  should-apply: ${{ fromJson(inputs.force-apply || false) && github.event_name != 'pull_request' }}
 
 jobs:
   terraform:
@@ -67,8 +67,8 @@ jobs:
       - name: Set Plan & Apply flags
         if: (steps.filter-paths.outcome == 'success')
         run: |
-          echo "should-plan=${{ contains(steps.filter-paths.outputs.changes, 'changed') == 'true' }}" >> $GITHUB_ENV
-          echo "should-apply=${{ contains(steps.filter-paths.outputs.changes, 'changed') == 'true' }}" >> $GITHUB_ENV
+          echo "should-plan=${{ contains(steps.filter-paths.outputs.changes, 'changed') }}" >> $GITHUB_ENV
+          echo "should-apply=${{ contains(steps.filter-paths.outputs.changes, 'changed') }}" >> $GITHUB_ENV
 
       - name: Setup AWS Role
         uses: aws-actions/configure-aws-credentials@v2
@@ -79,62 +79,34 @@ jobs:
           role-session-name: ${{ github.event.repository.name }}
 
       - name: Terraform Setup
+        if: (env.should-plan == 'true' || env.should-apply == 'true')
         uses: hashicorp/setup-terraform@v2.0.3
         with:
           cli_config_credentials_token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
       - name: Terraform fmt
+        if: (env.should-plan == 'true' || env.should-apply == 'true')
         id: fmt
         working-directory: ${{ inputs.working-directory }}
         run: terraform fmt -check
 
       - name: Terraform Init
+        if: (env.should-plan == 'true' || env.should-apply == 'true')
         id: init
         working-directory: ${{ inputs.working-directory }}
         run: terraform init -no-color
 
       - name: Terraform Validate
+        if: (env.should-plan == 'true' || env.should-apply == 'true')
         id: validate
         working-directory: ${{ inputs.working-directory }}
         run: terraform validate -no-color
 
       - name: Terraform Plan
         id: plan
-        if: (env.should-plan == 'true' && env.should-apply != 'true')
+        if: (env.should-plan == 'true')
         working-directory: ${{ inputs.working-directory }}
         run: terraform plan -no-color -input=false
-        continue-on-error: true
-
-      - name: Update Pull Request
-        uses: actions/github-script@v6
-        if: (github.event_name == 'pull_request' && always())
-        env:
-          PLAN: "${{ steps.plan.outputs.stdout }}"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Terraform Path: \`${{ inputs.working-directory }}\`
-            #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-
-            <details><summary>Show Plan</summary>
-
-            \`\`\`terraform\n
-            ${process.env.PLAN}
-            \`\`\`
-
-            </details>
-
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
 
       - name: Terraform Apply
         id: apply
