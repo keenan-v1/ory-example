@@ -17,7 +17,6 @@ on:
         default: "latest"
 
 env:
-  COMMENT_FILE: comment.md
   working-directory: "database/provisioning"
   application-name: "database-provisioner"
   SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}"
@@ -100,25 +99,6 @@ jobs:
           ECR_REPOSITORY: "${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}/${{ env.application-name }}"
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
           context: ${{ env.working-directory }}
-
-      - name: Fetch Pull Request comment from cache
-        if: (github.event_name == 'pull_request' && always())
-        uses: actions/cache@v3
-        id: cache
-        with:
-          path: ${{ env.COMMENT_FILE }}
-          key: ${{ github.run_id }}
-
-      - name: Update Pull Request Comment
-        if: (github.event_name == 'pull_request' && always())
-        env:
-          COMMENT_FILE: ${{ env.COMMENT_FILE }}
-        run: |
-          echo '' >> $COMMENT_FILE
-          echo "#### Database Provisioner ####" >> $COMMENT_FILE
-          echo "**Working Path** 📁 \`${{ env.working-directory }}\`" >> $COMMENT_FILE
-          echo "**Image Build** ⚙️ \`${{ steps.build-image.outcome }}\`" >> $COMMENT_FILE
-          echo "**Image Tag** 🏷️ \`${{ env.IMAGE_TAG }}\`" >> $COMMENT_FILE
 
       - name: Fetch Cluster & Network Info
         if: (success() && env.should-run == 'true' && github.event_name != 'pull_request')

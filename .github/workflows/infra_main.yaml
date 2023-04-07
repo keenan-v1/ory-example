@@ -15,6 +15,7 @@ on:
       TERRAFORM_CLOUD_TOKEN:
         description: "Terraform Cloud Token"
         required: true
+
   workflow_dispatch:
     inputs:
       force-apply:
