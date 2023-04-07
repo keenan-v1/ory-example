@@ -81,11 +81,7 @@ jobs:
 
   update-pr:
     name: Update Pull Request
-    if: github.event_name == 'pull_request'
-    needs:
-      - run-infra
-      - run-database-modifications
-      - run-applications
+    if: github.event_name == 'pull_request' && always()
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Comment
@@ -93,10 +89,6 @@ jobs:
         with:
           path: comment.md
           key: ${{ github.run_id }}
-      - name: Load Comment
-        id: load-comment
-        run: |
-          echo "comment-text=$(cat comment.md)" >> $GITHUB_OUTPUT
       - name: Add Comment
         uses: actions/github-script@v5
         with:
