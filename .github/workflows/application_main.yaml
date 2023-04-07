@@ -43,6 +43,6 @@ jobs:
     uses: "./.github/workflows/application_run.yaml"
     with:
       application-name: kratos
-      force-build: ${{ inputs.force-build == 'true' }}
-      force-deploy: ${{ inputs.force-deploy == 'true' }}
+      force-build: ${{ fromJson(inputs.force-build) }}
+      force-deploy: ${{ fromJson(inputs.force-deploy) }}
       image-tag: ${{ inputs.image-tag }}

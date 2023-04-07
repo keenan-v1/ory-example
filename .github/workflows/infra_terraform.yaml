@@ -44,8 +44,8 @@ env:
   TF_CLOUD_ORGANIZATION: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
   AWS_ROLE: ${{ vars.AWS_ROLE }}
   AWS_REGION: ${{ vars.AWS_REGION }}
-  should-plan: ${{ (inputs.force-plan == 'true' || github.event.inputs.force-plan == 'true') || github.event_name == 'pull_request' }}
-  should-apply: ${{ (inputs.force-apply == 'true' || github.event.inputs.force-apply == 'true') && github.event_name != 'pull_request' }}
+  should-plan: ${{ fromJson(inputs.force-plan) || github.event_name == 'pull_request' }}
+  should-apply: ${{ fromJson(inputs.force-apply) && github.event_name != 'pull_request' }}
 
 jobs:
   terraform:

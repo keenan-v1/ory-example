@@ -64,8 +64,8 @@ jobs:
     needs: run-infra
     uses: "./.github/workflows/database_main.yaml"
     with:
-      force-build: ${{ (github.event.inputs.force-db-build == 'true') }}
-      force-run: ${{ (github.event.inputs.force-db-deploy == 'true') }}
+      force-build: ${{ fromJson(inputs.force-db-build) }}
+      force-run: ${{ fromJson(inputs.force-db-deploy) }}
       image-tag: "latest"
 
   run-applications:
@@ -75,6 +75,6 @@ jobs:
       - run-database-modifications
     uses: "./.github/workflows/application_main.yaml"
     with:
-      force-build: ${{ (github.event.inputs.force-build == 'true') }}
-      force-deploy: ${{ (github.event.inputs.force-deploy == 'true') }}
+      force-build: ${{ fromJson(inputs.force-build) }}
+      force-deploy: ${{ fromJson(inputs.force-deploy) }}
       image-tag: "latest"

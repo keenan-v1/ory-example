@@ -20,8 +20,8 @@ env:
   working-directory: "database/provisioning"
   application-name: "database-provisioner"
   SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}"
-  should-build: ${{ (inputs.force-build || inputs.image-tag == 'latest') }}
-  should-run: ${{ (inputs.force-run || inputs.image-tag == 'latest') && github.event_name != 'pull_request' }}
+  should-build: ${{ (fromJson(inputs.force-build) || inputs.image-tag == 'latest') }}
+  should-run: ${{ (fromJson(inputs.force-run) || inputs.image-tag == 'latest') && github.event_name != 'pull_request' }}
   IMAGE_TAG: ${{ inputs.image-tag }}
   AWS_ROLE: ${{ vars.AWS_ROLE }}
   AWS_REGION: ${{ vars.AWS_REGION }}

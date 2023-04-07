@@ -48,8 +48,8 @@ permissions:
 env:
   working-directory: "applications/${{ inputs.application-name }}"
   SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}"
-  should-build: ${{ (inputs.force-build || inputs.image-tag == 'latest') }}
-  should-deploy: ${{ (inputs.force-deploy || inputs.image-tag == 'latest') && github.event_name != 'pull_request' }}
+  should-build: ${{ (fromJson(inputs.force-build) || inputs.image-tag == 'latest') }}
+  should-deploy: ${{ (fromJson(inputs.force-deploy) || inputs.image-tag == 'latest') && github.event_name != 'pull_request' }}
   IMAGE_TAG: ${{ inputs.image-tag }}
   AWS_ROLE: ${{ vars.AWS_ROLE }}
   AWS_REGION: ${{ vars.AWS_REGION }}

@@ -45,6 +45,6 @@ jobs:
     name: Provisioner
     uses: "./.github/workflows/database_provisioner.yaml"
     with:
-      force-build: ${{ inputs.force-build == 'true' }}
-      force-run: ${{ inputs.force-run == 'true' }}
+      force-build: ${{ fromJson(inputs.force-build) }}
+      force-run: ${{ fromJson(inputs.force-run) }}
       image-tag: ${{ inputs.image-tag }}
