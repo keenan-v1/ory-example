@@ -41,6 +41,7 @@ permissions:
   pull-requests: write
 
 env:
+  COMMENT_FILE: comment.md
   TF_CLOUD_ORGANIZATION: ${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}
   AWS_ROLE: ${{ vars.AWS_ROLE }}
   AWS_REGION: ${{ vars.AWS_REGION }}
@@ -108,36 +109,35 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         run: terraform plan -no-color -input=false
 
-      - name: Update Pull Request
-        uses: actions/github-script@v6
+      - name: Fetch Pull Request comment from cache
+        if: (github.event_name == 'pull_request' && always())
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: ${{ env.COMMENT_FILE }}
+          key: ${{ github.run_id }}
+
+      - name: Update Pull Request Comment
         if: (github.event_name == 'pull_request' && always())
         env:
           PLAN: "${{ steps.plan.outputs.stdout }}"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Terraform Path: \`${{ inputs.working-directory }}\`
-            #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-
-            <details><summary>Show Plan</summary>
-
-            \`\`\`terraform\n
-            ${process.env.PLAN}
-            \`\`\`
-
-            </details>
-
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
+          COMMENT_FILE: ${{ env.COMMENT_FILE }}
+        run: |
+          echo '' >> $COMMENT_FILE
+          echo "#### Terraform Run ####" >> $COMMENT_FILE
+          echo "**Working Path** 📁 \`${{ inputs.working-directory }}\`" >> $COMMENT_FILE
+          echo "**Format and Style** 🖌 \`${{ steps.fmt.outcome }}\`" >> $COMMENT_FILE
+          echo "**Initialization** ⚙️ \`${{ steps.init.outcome }}\`" >> $COMMENT_FILE
+          echo "**Plan** 📖 \`${{ steps.plan.outcome }}\`" >> $COMMENT_FILE
+          echo "**Validation** 🤖 \`${{ steps.validate.outcome }}\`" >> $COMMENT_FILE
+          echo '' >> $COMMENT_FILE
+          echo "<details><summary>Show Plan</summary>" >> $COMMENT_FILE
+          echo '' >> $COMMENT_FILE
+          echo "\`\`\`terraform\n" >> $COMMENT_FILE
+          echo "${PLAN}" >> $COMMENT_FILE
+          echo "\`\`\`" >> $COMMENT_FILE
+          echo '' >> $COMMENT_FILE
+          echo "</details>" >> $COMMENT_FILE
 
       - name: Terraform Apply
         id: apply

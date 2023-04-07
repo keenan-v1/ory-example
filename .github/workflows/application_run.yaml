@@ -46,6 +46,7 @@ permissions:
   pull-requests: write
 
 env:
+  COMMENT_FILE: comment.md
   working-directory: "applications/${{ inputs.application-name }}"
   SSM_PARAMETER_PREFIX: "/${{ vars.TERRAFORM_CLOUD_ORGANIZATION }}/${{ vars.PROJECT_NAME }}/${{ vars.ENVIRONMENT_NAME }}"
   should-build: ${{ (fromJson(inputs.force-build || false)) }}
@@ -119,23 +120,24 @@ jobs:
           IMAGE_TAG: ${{ github.sha }} # We don't use IMAGE_TAG here so we don't accidentally overwrite an existing image
           context: ${{ env.working-directory }}
 
-      - name: Update Pull Request
-        uses: actions/github-script@v6
+      - name: Fetch Pull Request comment from cache
         if: (github.event_name == 'pull_request' && always())
+        uses: actions/cache@v3
+        id: cache
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Working Path 📁: \`${{ env.working-directory }}\`
-            #### Docker Build ⚙️:\`${{ steps.build-image.outcome }}\`
+          path: ${{ env.COMMENT_FILE }}
+          key: ${{ github.run_id }}
 
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
+      - name: Update Pull Request Comment
+        if: (github.event_name == 'pull_request' && always())
+        env:
+          COMMENT_FILE: ${{ env.COMMENT_FILE }}
+        run: |
+          echo '' >> $COMMENT_FILE
+          echo "#### Application: ${{ inputs.application-name }} ####" >> $COMMENT_FILE
+          echo "**Working Path** 📁 \`${{ env.working-directory }}\`" >> $COMMENT_FILE
+          echo "**Image Build** ⚙️ \`${{ steps.build-image.outcome }}\`" >> $COMMENT_FILE
+          echo "**Image Tag** 🏷️ \`${{ env.IMAGE_TAG }}\`" >> $COMMENT_FILE
 
       - name: Update Summary
         if: always()

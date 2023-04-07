@@ -50,6 +50,21 @@ permissions:
   pull-requests: write
 
 jobs:
+  create-pr-comment:
+    name: Update Pull Request
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      comment-id: ${{ steps.update-comment.outputs.comment-id }}
+    steps:
+      - name: Update PR
+        id: update-comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            🤖: Please wait while I update the PR with the latest status...
+
   run-infra:
     name: Infra
     uses: "./.github/workflows/infra_main.yaml"
@@ -78,3 +93,33 @@ jobs:
       force-build: ${{ fromJson(inputs.force-build || false) }}
       force-deploy: ${{ fromJson(inputs.force-deploy || false) }}
       image-tag: "latest"
+
+  update-pr:
+    name: Update PR
+    if: github.event_name == 'pull_request'
+    needs:
+      - create-pr-comment
+      - run-infra
+      - run-database-modifications
+      - run-applications
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch comment file from cache
+        uses: actions/cache@v3
+        with:
+          path: comment.md
+          key: ${{ github.run_id }}
+      - name: Load comment file
+        id: load-comment
+        run: |
+          echo "comment-text=$(cat comment.md)" >> $GITHUB_OUTPUT
+      - name: Update PR
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ needs.create-pr-comment.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            🤖: Here is your build status:
+            ${{ steps.load-comment.outputs.comment-text }}
+          reactions: rocket
