@@ -104,10 +104,9 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        if: (env.should-plan == 'true' && env.should-apply != 'true')
+        if: (env.should-plan == 'true')
         working-directory: ${{ inputs.working-directory }}
         run: terraform plan -no-color -input=false
-        continue-on-error: true
 
       - name: Update Pull Request
         uses: actions/github-script@v6
