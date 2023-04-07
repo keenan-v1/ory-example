@@ -138,7 +138,7 @@ jobs:
             })
 
       - name: Update Summary
-        if: (env.should-build == 'true' && always())
+        if: always()
         run: |
           echo '' >> $GITHUB_STEP_SUMMARY
           echo "#### Application Build for ${{ inputs.application-name }} ####" >> $GITHUB_STEP_SUMMARY
