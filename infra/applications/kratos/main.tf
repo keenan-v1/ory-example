@@ -416,6 +416,11 @@ resource "aws_ecs_service" "service" {
     field = "instanceId"
   }
 
+  placement_constraints {
+    type       = "distinctInstance"
+    expression = ""
+  }
+
   capacity_provider_strategy {
     capacity_provider = "one"
     weight            = 100
@@ -435,7 +440,8 @@ resource "aws_ecs_service" "service" {
   }
 
   lifecycle {
-    ignore_changes = [desired_count, task_definition]
+    create_before_destroy = true
+    ignore_changes        = [desired_count, task_definition]
   }
 }
 
