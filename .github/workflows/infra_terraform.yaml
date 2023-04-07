@@ -67,8 +67,8 @@ jobs:
       - name: Set Plan & Apply flags
         if: (steps.filter-paths.outcome == 'success')
         run: |
-          echo "should-plan=${{ contains(steps.filter-paths.outputs.changes, 'changed') == 'true' }}" >> $GITHUB_ENV
-          echo "should-apply=${{ contains(steps.filter-paths.outputs.changes, 'changed') == 'true' }}" >> $GITHUB_ENV
+          echo "should-plan=${{ contains(steps.filter-paths.outputs.changes, 'changed') }}" >> $GITHUB_ENV
+          echo "should-apply=${{ contains(steps.filter-paths.outputs.changes, 'changed') }}" >> $GITHUB_ENV
 
       - name: Setup AWS Role
         uses: aws-actions/configure-aws-credentials@v2
