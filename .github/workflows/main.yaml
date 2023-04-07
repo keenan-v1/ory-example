@@ -13,15 +13,19 @@ on:
         required: false
       force-build:
         type: boolean
-        description: "Force build docker image"
+        description: "Force build application images"
         required: false
       force-deploy:
         type: boolean
-        description: "Force deploy docker image"
+        description: "Force deploy application images"
         required: false
-      force-modifications:
+      force-db-build:
         type: boolean
-        description: "Force database modifications"
+        description: "Force build database images"
+        required: false
+      force-db-deploy:
+        type: boolean
+        description: "Force deploy database images"
         required: false
 
   push:
@@ -50,8 +54,8 @@ jobs:
     name: Infra
     uses: "./.github/workflows/infra_main.yaml"
     with:
-      force-apply: ${{ (github.event.inputs.force-apply == 'true') }}
-      force-plan: ${{ (github.event.inputs.force-plan == 'true') }}
+      force-apply: ${{ fromJson(inputs.force-apply) }}
+      force-plan: ${{ fromJson(inputs.force-plan) }}
     secrets:
       TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
 
@@ -60,8 +64,8 @@ jobs:
     needs: run-infra
     uses: "./.github/workflows/database_main.yaml"
     with:
-      force-build: ${{ (github.event.inputs.force-modifications == 'true') }}
-      force-run: ${{ (github.event.inputs.force-modifications == 'true') }}
+      force-build: ${{ (github.event.inputs.force-db-build == 'true') }}
+      force-run: ${{ (github.event.inputs.force-db-deploy == 'true') }}
       image-tag: "latest"
 
   run-applications:
@@ -73,3 +77,4 @@ jobs:
     with:
       force-build: ${{ (github.event.inputs.force-build == 'true') }}
       force-deploy: ${{ (github.event.inputs.force-deploy == 'true') }}
+      image-tag: "latest"
