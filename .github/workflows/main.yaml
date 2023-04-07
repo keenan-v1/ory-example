@@ -81,6 +81,10 @@ jobs:
 
   update-pr:
     name: Update Pull Request
+    needs:
+      - run-infra
+      - run-database-modifications
+      - run-applications
     if: github.event_name == 'pull_request' && always()
     runs-on: ubuntu-latest
     steps:
