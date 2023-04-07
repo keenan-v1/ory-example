@@ -14,9 +14,9 @@ on:
       application-name:
         type: string
         description: "Application Name"
-      commit-id:
+      image-tag:
         type: string
-        description: "Commit ID to deploy"
+        description: "Image Tag to deploy"
         required: false
         default: "latest"
 
@@ -56,7 +56,7 @@ env:
 
 jobs:
   build-and-deploy:
-    name: ${{ inputs.application-name }}
+    name: Build & Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

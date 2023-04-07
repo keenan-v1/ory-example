@@ -49,7 +49,7 @@ env:
 
 jobs:
   terraform:
-    name: ${{ inputs.working-directory }}
+    name: Terraform
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

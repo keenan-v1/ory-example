@@ -11,7 +11,11 @@ on:
         type: boolean
         description: "Force deploy"
         required: false
-
+      image-tag:
+        type: string
+        description: "Image Tag to deploy"
+        required: false
+        default: "latest"
   workflow_call:
     inputs:
       force-build:
@@ -22,6 +26,11 @@ on:
         type: boolean
         description: "Force deploy"
         required: true
+      image-tag:
+        type: string
+        description: "Image Tag to deploy"
+        required: false
+        default: "latest"
 
 permissions:
   id-token: write
@@ -36,3 +45,4 @@ jobs:
       application-name: kratos
       force-build: ${{ inputs.force-build == 'true' }}
       force-deploy: ${{ inputs.force-deploy == 'true' }}
+      image-tag: ${{ inputs.image-tag }}
