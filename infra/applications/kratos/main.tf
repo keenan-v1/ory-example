@@ -409,7 +409,7 @@ resource "aws_ecs_service" "service" {
   name            = var.service_name
   cluster         = local.cluster_info.cluster_name
   task_definition = aws_ecs_task_definition.service.arn
-  desired_count   = 2
+  desired_count   = 1
 
   ordered_placement_strategy {
     type  = "spread"
