@@ -417,10 +417,10 @@ resource "aws_ecs_service" "service" {
     field = "instanceId"
   }
 
-  placement_constraints {
-    type       = "distinctInstance"
-    expression = ""
-  }
+  # placement_constraints {
+  # type       = "distinctInstance"
+  # expression = ""
+  # }
 
   deployment_circuit_breaker {
     enable   = true
