@@ -334,7 +334,7 @@ resource "aws_ecs_task_definition" "service" {
       {
         name            = var.service_name
         image           = var.image
-        cpu             = 256
+        cpu             = 128
         memory          = 512
         essential       = true
         cpuArchitecture = "ARM64"
@@ -400,6 +400,7 @@ resource "aws_ecs_task_definition" "service" {
             valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:smtp_connection_uri::"
           }
         ]
+
       }
     ]
   )
