@@ -144,9 +144,9 @@ jobs:
           data_file: application_info.json
 
       - name: Convert task definition to JSON
-        uses: mikefarah/yq@v4
+        uses: mikefarah/yq@v4.33.2
         with:
-          cmd: yq eval -j task-definition.yaml > task-definition.json
+          cmd: yq -o=json task-definition.yaml > task-definition.json
 
       - name: Update Task Definition
         if: (env.should-deploy == 'true' && github.event_name != 'pull_request')
