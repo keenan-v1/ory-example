@@ -5,42 +5,42 @@
 family: "{{ family_name }}"
 executionRoleArn: "{{ execution_role_arn }}"
 containerDefinitions:
-  name: "{{ service_name }}"
-  cpu: 128
-  memory: 256
-  image: will-be-overwritten-on-deploy
-  cpuArchitecture: ARM64
-  essential: true
-  portMappings:
-    - containerPort: 4433 # Public
-      hostPort: 0 # dynamic mapping 
-    - containerPort: 4434 # Admin
-      hostPort: 0 # dynamic mapping
-  environment:
-    - name: ISSUER
-      value: "{{ service_name | title }}"
-    - name: PUBLIC_BASE_URL
-      value: https://{{ app_domain }}
-    - name: ADMIN_BASE_URL
-      value: https://{{ app_domain }}/admin
-    - name: DEFAULT_BROWSER_RETURN_URL
-      value: https://dashboard.{{ base_domain }}
-    - name: LOGIN_BASE_URL
-      value: https://login.{{ base_domain }}
-  secrets:
-    - name: DSN
-      valueFrom: "{{ secrets_arn }}:dsn::"
-    - name: SECRETS_COOKIE
-      valueFrom: "{{ secrets_arn }}:secrets_cookie::"
-    - name: SECRETS_CIPHER
-      valueFrom: "{{ secrets_arn }}:secrets_cipher::"
-    - name: SECRETS_DEFAULT
-      valueFrom: "{{ secrets_arn }}:secrets_default::"
-    - name: COURIER_SMTP_CONNECTION_URI
-      valueFrom: "{{ secrets_arn }}:smtp_connection_uri::"
-  logConfiguration:
-    logDriver: awslogs
-    options:
-      awslogs-group: "{{ log_group_name }}"
-      awslogs-region: "{{ region }}"
-      awslogs-stream-prefix: "ecs-{{ service_name }}"
+  - name: "{{ service_name }}"
+    cpu: 128
+    memory: 256
+    image: will-be-overwritten-on-deploy
+    cpuArchitecture: ARM64
+    essential: true
+    portMappings:
+      - containerPort: 4433 # Public
+        hostPort: 0 # dynamic mapping 
+      - containerPort: 4434 # Admin
+        hostPort: 0 # dynamic mapping
+    environment:
+      - name: ISSUER
+        value: "{{ service_name | title }}"
+      - name: PUBLIC_BASE_URL
+        value: https://{{ app_domain }}
+      - name: ADMIN_BASE_URL
+        value: https://{{ app_domain }}/admin
+      - name: DEFAULT_BROWSER_RETURN_URL
+        value: https://dashboard.{{ base_domain }}
+      - name: LOGIN_BASE_URL
+        value: https://login.{{ base_domain }}
+    secrets:
+      - name: DSN
+        valueFrom: "{{ secrets_arn }}:dsn::"
+      - name: SECRETS_COOKIE
+        valueFrom: "{{ secrets_arn }}:secrets_cookie::"
+      - name: SECRETS_CIPHER
+        valueFrom: "{{ secrets_arn }}:secrets_cipher::"
+      - name: SECRETS_DEFAULT
+        valueFrom: "{{ secrets_arn }}:secrets_default::"
+      - name: COURIER_SMTP_CONNECTION_URI
+        valueFrom: "{{ secrets_arn }}:smtp_connection_uri::"
+    logConfiguration:
+      logDriver: awslogs
+      options:
+        awslogs-group: "{{ log_group_name }}"
+        awslogs-region: "{{ region }}"
+        awslogs-stream-prefix: "ecs-{{ service_name }}"
