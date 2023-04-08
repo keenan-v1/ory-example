@@ -75,7 +75,7 @@ jobs:
         if: (steps.check-run.outcome == 'success')
         run: |
           echo "should-build=${{ contains(steps.check-run.outputs.changes, 'changed') }}" >> $GITHUB_ENV
-          echo "should-run=${{ contains(steps.check-run.outputs.changes, 'changed') }}" >> $GITHUB_ENV
+          echo "should-deploy=${{ contains(steps.check-run.outputs.changes, 'changed') }}" >> $GITHUB_ENV
 
       - name: Setup AWS Role
         if: (env.should-build == 'true' || env.should-deploy == 'true')
