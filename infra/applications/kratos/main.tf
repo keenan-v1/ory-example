@@ -401,7 +401,8 @@ locals {
     execution_role_arn  = aws_iam_role.ecs_execution_role.arn
     task_definition_arn = aws_ecs_task_definition.service.arn_without_revision
     secrets_arn         = aws_secretsmanager_secret.application_secrets.arn
-    log_group           = aws_cloudwatch_log_group.log.name
+    log_group_name      = aws_cloudwatch_log_group.log.name
+    log_group_region    = var.region
     app_domain          = local.lb_domain
     base_domain         = local.base_domain
   }
