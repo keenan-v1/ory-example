@@ -131,16 +131,22 @@ jobs:
         if: (env.should-deploy == 'true' && github.event_name != 'pull_request')
         id: application-info
         run: |
-          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/application/${{ inputs.application-name }}/info" --query "Parameter.Value" --output text > info.json
-          echo "application_info=$(cat info.json)" >> $GITHUB_OUTPUT
-          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/ecr/info" --query "Parameter.Value" --output text > info.json
-          echo "repository_url=$(cat info.json | jq -r '.${{ inputs.application-name }}')" >> $GITHUB_OUTPUT
+          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/application/${{ inputs.application-name }}/info" --query "Parameter.Value" --output text > application_info.json
+          echo "application_info=$(cat application_info.json)" >> $GITHUB_OUTPUT
+          aws ssm get-parameter --name "${{ env.SSM_PARAMETER_PREFIX }}/ecr/info" --query "Parameter.Value" --output text > registry_info.json
+          echo "repository_url=$(cat registry_info.json | jq -r '.${{ inputs.application-name }}')" >> $GITHUB_OUTPUT
 
-      - name: Fetch Task Definition
-        if: (env.should-deploy == 'true' && github.event_name != 'pull_request')
-        id: download-task-definition
-        run: |
-          aws ecs describe-task-definition --task-definition ${{ fromJson(steps.application-info.outputs.application_info).task_definition_arn }} --query 'taskDefinition' > task-definition.json
+      - name: Render task definition
+        uses: cuchi/jinja2-action@v1.2.0
+        with:
+          template: ${{ env.working-directory }}/deploy/task-definition.yaml.j2
+          output_file: task-definition.yaml
+          data_file: application_info.json
+
+      - name: Convert task definition to JSON
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq eval -j task-definition.yaml > task-definition.json
 
       - name: Update Task Definition
         if: (env.should-deploy == 'true' && github.event_name != 'pull_request')

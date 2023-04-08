@@ -14,7 +14,8 @@ locals {
   network_info  = jsondecode(data.aws_ssm_parameter.network_info.value)
   cluster_info  = jsondecode(data.aws_ssm_parameter.cluster_info.value)
   database_info = jsondecode(data.aws_ssm_parameter.database_info.value)
-  lb_domain     = var.environment == "production" ? "auth.${var.hosted_zone_name}" : "auth.${var.environment}.${var.hosted_zone_name}"
+  base_domain   = var.environment == "production" ? var.hosted_zone_name : "${var.environment}.${var.hosted_zone_name}"
+  lb_domain     = "auth.${local.base_domain}"
 }
 
 data "aws_route53_zone" "domain" {
@@ -231,14 +232,7 @@ locals {
     secrets_default     = random_password.application_secrets[2].result
     smtp_connection_uri = var.smtp_connection_uri
   }
-  # Replace these with your own values
-  environment_variables = {
-    issuer                     = var.project_name
-    public_base_url            = "https://${local.lb_domain}"
-    admin_base_url             = "https://${local.lb_domain}/admin"
-    default_browser_return_url = "https://dashboard.${var.hosted_zone_name}/"
-    login_base_url             = "https://login.${var.hosted_zone_name}"
-  }
+  family_name = "${var.organization}-${var.project_name}-${var.environment}-${var.service_name}"
 }
 
 resource "aws_secretsmanager_secret" "application_secrets" {
@@ -326,8 +320,10 @@ resource "aws_iam_role_policy" "ecs_task_ecr" {
   policy = data.aws_iam_policy_document.ecr.json
 }
 
+# Dummy task definition to force ECS to create the service
+# This is replaced by GitHub Actions
 resource "aws_ecs_task_definition" "service" {
-  family             = var.service_name
+  family             = local.family_name
   execution_role_arn = aws_iam_role.ecs_execution_role.arn
   container_definitions = jsonencode(
     [
@@ -338,79 +334,22 @@ resource "aws_ecs_task_definition" "service" {
         memory          = 512
         essential       = true
         cpuArchitecture = "ARM64"
-        portMappings = [
-          {
-            containerPort = 4433
-            hostPort      = 0
-          },
-          {
-            containerPort = 4434
-            hostPort      = 0
-          }
-        ]
-        logConfiguration = {
-          logDriver = "awslogs"
-          options = {
-            awslogs-group         = aws_cloudwatch_log_group.log.name
-            awslogs-region        = var.region
-            awslogs-stream-prefix = "ecs-${var.service_name}-"
-          }
-        }
-        environment = [
-          {
-            name  = "ISSUER",
-            value = local.environment_variables.issuer
-          },
-          {
-            name  = "PUBLIC_BASE_URL",
-            value = local.environment_variables.public_base_url
-          },
-          {
-            name  = "ADMIN_BASE_URL",
-            value = local.environment_variables.admin_base_url
-          },
-          {
-            name  = "DEFAULT_BROWSER_RETURN_URL",
-            value = local.environment_variables.default_browser_return_url
-          },
-          {
-            name  = "LOGIN_BASE_URL",
-            value = local.environment_variables.login_base_url
-          }
-        ]
-        secrets = [
-          {
-            name      = "DSN",
-            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:dsn::"
-          },
-          {
-            name      = "SECRETS_COOKIE",
-            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:secrets_cookie::"
-          },
-          {
-            name      = "SECRETS_CIPHER",
-            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:secrets_cipher::"
-          },
-          {
-            name      = "SECRETS_DEFAULT",
-            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:secrets_default::"
-          },
-          {
-            name      = "COURIER_SMTP_CONNECTION_URI",
-            valueFrom = "${aws_secretsmanager_secret.application_secrets.arn}:smtp_connection_uri::"
-          }
-        ]
-
       }
     ]
   )
+  lifecycle {
+    ignore_changes = [
+      container_definitions
+    ]
+  }
 }
 
 resource "aws_ecs_service" "service" {
   name            = var.service_name
   cluster         = local.cluster_info.cluster_name
   task_definition = aws_ecs_task_definition.service.arn
-  desired_count   = 1
+  desired_count   = 0
+  propagate_tags  = "SERVICE"
 
   ordered_placement_strategy {
     type  = "spread"
@@ -454,11 +393,17 @@ resource "aws_ecs_service" "service" {
 # Set the application info in SSM, this is consumed by GitHub Actions
 locals {
   application_info = {
+    family_name         = aws_ecs_task_definition.service.family
     cluster_name        = local.cluster_info.cluster_name
     container_name      = var.service_name
     service_name        = aws_ecs_service.service.name
     service_id          = aws_ecs_service.service.id
+    execution_role_arn  = aws_iam_role.ecs_execution_role.arn
     task_definition_arn = aws_ecs_task_definition.service.arn_without_revision
+    secrets_arn         = aws_secretsmanager_secret.application_secrets.arn
+    log_group           = aws_cloudwatch_log_group.log.name
+    app_domain          = local.lb_domain
+    base_domain         = local.base_domain
   }
 }
 
