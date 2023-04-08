@@ -29,5 +29,8 @@ RUN apk --update upgrade && \
 # Set back to kratos user
 USER 10000
 
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:4433/health/alive && curl -f http://localhost:4434/health/alive || exit 1
+
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
 CMD ["kratos", "serve", "-c", "/home/ory/kratos.yaml"]
